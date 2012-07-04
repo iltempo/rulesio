@@ -1,4 +1,4 @@
 whenauser
 =========
 
-Connect your Rails application to WhenAUser.
+Connect your Rails applications to WhenAUser.
