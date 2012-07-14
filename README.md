@@ -13,6 +13,15 @@ Usage Example
     config.middleware.use 'WhenAUser::Pageviews',
       :ignore_if => lambda { |env| env['action_controller.instance'].is_a? SillyController }
 
+This gem will automatically send events for all exceptions and all pageviews (except those that filtered out by the options). You can also manually send additional events. For example:
+
+    WhenAUser.send_event(
+      :_actor => current_user.email, 
+      :_timestamp => Time.now.to_f, 
+      :_domain => 'account',
+      :_name => 'upgrade',
+      :plan => plan.name )
+
 Options
 -------
 
@@ -40,14 +49,18 @@ Use Cases
 
 ### Example rule triggers
 
-* whenever a UserIsHavingAVeryBadDay exception is raised
+* whenever a `UserIsHavingAVeryBadDay` exception is raised
 * the first time any exception occurs
-* whenever a request takes more than 20 seconds to respond
-* whenever a POST is done to plan#upgrade
+* whenever a request takes more than 20 seconds to process
+* whenever someone upgrades their account
+* whenever someone does comment#create more than 10 times in a day
+* whenever someone tagged 'active' doesn't login for a week
 
 ### Example rule actions
 
 * send yourself an email or a mobile push message
-* send `current_user` an email or a mobile push message
+* send a user an email or a mobile push message
 * create a ticket in your ticketing system
 * add a data point to a Librato graph
+* tag a user in WhenAUser, or in your CRM
+* segment a user in your email campaign tool
