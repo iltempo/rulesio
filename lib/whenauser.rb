@@ -28,6 +28,7 @@ module WhenAUser
     def initialize(app, options={})
       options[:webhook_url] ||= 'http://whenauser.com/events'
       @app = app
+      WhenAUser.queue = []
       WhenAUser.filter_parameters = defined?(Rails) ? Rails.application.config.filter_parameters : []
       WhenAUser.token = options[:token]
       WhenAUser.endpoint = Faraday::Connection.new options[:webhook_url] do |builder|
