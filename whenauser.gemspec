@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ['David Anderson']
   s.email       = ['david@alpinegizmo.com']
   s.homepage    = 'https://github.com/tractionlabs/whenauser'
-  s.summary     = %q{Connect your Rails applications to WhenAUser}
-  s.description = %q{Connect your Rails applications to WhenAUser}
+  s.summary     = %q{Rack middleware for connecting to WhenAUser}
+  s.description = %q{Rack middleware for connecting to WhenAUser}
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

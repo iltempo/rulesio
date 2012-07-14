@@ -1,67 +1,46 @@
 require 'whenauser/version'
-require 'whenauser/log_subscriber'
-require 'active_support/core_ext/module/attribute_accessors'
+require 'whenauser/helpers'
+require 'whenauser/exceptions'
+require 'whenauser/pageviews'
 require 'faraday'
 require 'faraday_middleware'
-
-class ActionController::Base
-  def self.inherited(subclass)
-    super
-    subclass.prepend_before_filter :whenauser_disable_pageview_events
-    subclass.before_filter :whenauser_pageview_events
-  end
-
-  def whenauser_disable_pageview_events
-    WhenAUser.disable_pageview_events!
-    true
-  end
-  
-  def whenauser_pageview_events
-    WhenAUser.enable_pageview_events!
-    true
-  end
-end
+require 'active_support/core_ext/module/attribute_accessors'
 
 module WhenAUser
-  mattr_accessor :webhook_url
-  mattr_accessor :token
-  mattr_accessor :endpoint
-  mattr_accessor :filter_parameters
-  mattr_accessor :data
-  mattr_accessor :state
+  mattr_accessor :endpoint, :filter_parameters, :queue, :token
 
-  def self.setup(app)
-    WhenAUser::RequestLogSubscriber.attach_to :action_controller
-    self.webhook_url = app.config.whenauser.webhook_url
-    self.token = app.config.whenauser.token
-    self.filter_parameters = app.config.filter_parameters || []
-    self.endpoint = Faraday::Connection.new webhook_url do |builder|
-      builder.request :json
-      builder.adapter Faraday.default_adapter
-    end
-    self.data = {}
-    self.state = {}
+  def self.default_ignored_crawlers
+    %w(Baidu Gigabot Googlebot libwww-perl lwp-trivial msnbot SiteUptime Slurp WordPress ZIBB ZyBorg Yandex Jyxobot Huaweisymantecspider ApptusBot)
   end
-  
-  def self.custom_data=(hash)
-    data[Thread.current] = hash
-  end
-  
+
   def self.send_event(event)
-    endpoint.post token, event.to_json
-  end
-  
-  def self.disable_pageview_events!
-    state[Thread.current] = :disabled
+    event[:_timestamp] = Time.now.to_f unless event[:_timestamp] || event['_timestamp']
+    WhenAUser.queue << event
   end
 
-  def self.enable_pageview_events!
-    state[Thread.current] = :enabled
+  def self.flush
+    return if (events = WhenAUser.queue).empty?
+    WhenAUser.queue = []
+    endpoint.post WhenAUser.token, events.to_json
   end
-  
-  def self.pageview_events_enabled?
-    state[Thread.current] == :enabled
+
+  class Rack
+    def initialize(app, options={})
+      options[:webhook_url] ||= 'http://whenauser.com/events'
+      @app = app
+      WhenAUser.filter_parameters = defined?(Rails) ? Rails.application.config.filter_parameters : []
+      WhenAUser.token = options[:token]
+      WhenAUser.endpoint = Faraday::Connection.new options[:webhook_url] do |builder|
+        builder.request :json
+        builder.adapter Faraday.default_adapter
+      end
+    end
+
+    def call(env)
+      WhenAUser.queue = []
+      status, headers, response = @app.call(env)
+      WhenAUser.flush
+      [status, headers, response]
+    end
   end
 end
-
-require 'whenauser/railtie' if defined?(Rails)
