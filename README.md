@@ -16,10 +16,11 @@ Usage Example
 This gem will automatically send events for all exceptions and all pageviews (except those that filtered out by the options). You can also manually send additional events. For example:
 
     WhenAUser.send_event(
-      :_actor => current_user.email, 
+      :_actor => current_user.unique_id, 
       :_timestamp => Time.now.to_f, 
       :_domain => 'account',
       :_name => 'upgrade',
+      :user_email => current_user.email,
       :plan => plan.name )
 
 Options
