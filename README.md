@@ -6,7 +6,7 @@ WhenAUser
 * when a user gets a validation error twice for the same form, send an email to Frank
 * when a premium customer hasn't logged in for a month, flag them in Highrise
 * when a user gets a 500 response, create a ticket in Zendesk
-* when a user invites ten friends, move them to the "well-connected" segment in MailChimp
+* when a user invites ten friends, add them to the "well-connected" segment in MailChimp
 
 This gem contains Rack middleware that automatically generates two event streams, one for exceptions and the other for pageviews, that can used to trigger rules in WhenAUser. You can (and probably should) also send more specific events manually.
 
