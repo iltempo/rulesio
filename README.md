@@ -1,7 +1,7 @@
 WhenAUser
 =========
 
-[WhenAUser.com](http://whenauser.com) is a rules engine as a service that uses events from your application to trigger calls to 3rd party SaaS APIs. This lets you eliminate business logic in your application, and use the WhenAUser web UI instead. This gem contains Rack middleware for connecting to WhenAUser. It generates two event streams, one for exceptions and the other for pageviews.
+[WhenAUser.com](http://whenauser.com) is a rules engine as a service that uses events from your application to trigger calls to 3rd party SaaS APIs. This lets you lift out the rapidly evolving parts of the business logic from your application, and use the WhenAUser web UI instead. This gem contains Rack middleware for connecting to WhenAUser. It generates two event streams, one for exceptions and the other for pageviews.
 
 Usage Example
 -------------

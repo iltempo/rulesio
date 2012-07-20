@@ -26,7 +26,7 @@ module WhenAUser
 
   class Rack
     def initialize(app, options={})
-      options[:webhook_url] ||= 'http://whenauser.com/events'
+      options[:webhook_url] ||= 'http://whenauser.com/events/'
       @app = app
       WhenAUser.queue = []
       WhenAUser.filter_parameters = defined?(Rails) ? Rails.application.config.filter_parameters : []
