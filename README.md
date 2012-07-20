@@ -1,7 +1,14 @@
 WhenAUser
 =========
 
-[WhenAUser.com](http://whenauser.com) is a rules engine as a service that uses events from your application to trigger calls to 3rd party SaaS APIs. This lets you lift out the rapidly evolving parts of the business logic from your application, and use the WhenAUser web UI instead. This gem contains Rack middleware for connecting to WhenAUser. It generates two event streams, one for exceptions and the other for pageviews.
+[WhenAUser.com](http://whenauser.com) is a rules engine that reacts to things users do or experience in your software, and makes things happen in 3rd party SaaS APIs -- without your having to write any code. Rather than implementing the most rapidly evolving parts of your application's business logic in code, your team can use the WhenAUser web app to specify "when", "how", and "who", with rules like these:
+
+* when a user gets a validation error twice for the same form, send an email to Frank
+* when a premium customer hasn't logged in for a month, flag them in Highrise
+* when a user gets a 500 response, create a ticket in Zendesk
+* when a user invites ten friends, move them to the "well-connected" segment in MailChimp
+
+This gem contains Rack middleware that automatically generates two event streams, one for exceptions and the other for pageviews, that can used to trigger rules in WhenAUser. You can (and probably should) also send more specific events manually.
 
 Usage Example
 -------------
@@ -13,7 +20,7 @@ Usage Example
     config.middleware.use 'WhenAUser::Pageviews',
       :ignore_if => lambda { |env| env['action_controller.instance'].is_a? SillyController }
 
-This gem will automatically send events for all exceptions and all pageviews (except those that filtered out by the options). You can also manually send additional events. For example:
+To manually send an event when a user upgrades to a "premium" account:
 
     WhenAUser.send_event(
       :_actor => current_user.unique_id, 
@@ -21,7 +28,7 @@ This gem will automatically send events for all exceptions and all pageviews (ex
       :_domain => 'account',
       :_name => 'upgrade',
       :user_email => current_user.email,
-      :plan => plan.name )
+      :plan => 'premium' )
 
 Options
 -------
