@@ -18,10 +18,14 @@ module WhenAUser
     def call(env)
       before = Time.now
       status, headers, response = @app.call(env)
+      [status, headers, response]
+    rescue Exception => e
+      status = 500
+      raise e
+    ensure
       after = Time.now
       request = ActionDispatch::Request.new(env)
       WhenAUser.send_event event(env, request, status, after - before) unless should_be_ignored(env, request)
-      [status, headers, response]
     end
 
   private
@@ -36,7 +40,7 @@ module WhenAUser
     rescue Exception => ex
       false
     end
-    
+
     def event_name(request)
       if (params = request.params)['controller']
         "#{params['controller']}##{params['action']}"

@@ -39,9 +39,9 @@ module WhenAUser
 
     def call(env)
       WhenAUser.queue = []
-      status, headers, response = @app.call(env)
+      @app.call(env)
+    ensure
       WhenAUser.flush
-      [status, headers, response]
     end
   end
 end
