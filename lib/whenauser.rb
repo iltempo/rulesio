@@ -45,3 +45,5 @@ module WhenAUser
     end
   end
 end
+
+require 'whenauser/railtie' if defined?(Rails)

@@ -17,14 +17,20 @@ In your Gemfile:
 
     gem 'whenauser'
 
-You'll need to create two incoming channels in WhenAUser, and configure their tokens -- you probably want to do something like this in production.rb (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
 
-    config.middleware.use 'WhenAUser::Rack',
-      :token => CHANNEL_TOKEN
-    config.middleware.use 'WhenAUser::Exceptions',
-      :token => ERROR_CHANNEL_TOKEN
-    config.middleware.use 'WhenAUser::Pageviews',
-      :ignore_if => lambda { |env| env['action_controller.instance'].is_a? SillyController }
+For Ruby on Rails
+
+You'll need to create two incoming channels in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
+
+    token "CHANNEL_TOKEN"
+
+    middleware :errors do
+      token "ERROR_CHANNEL_TOKEN"
+    end
+
+    middleware :pageviews do
+      ignore_if lambda { |env| env['action_controller.instance'].is_a? SillyController }
+    end
 
 Options
 -------
@@ -33,8 +39,9 @@ WhenAUser::Rack accepts these options:
 
 * `token` -- the token for a WhenAUser channel
 * `webhook_url` -- defaults to 'http://whenauser.com/events'
+* `middleware` -- takes the symbol for a middleware and a block, configuring it
 
-WhenAUser::Exceptions accepts these options:
+The `exceptions` middleware accepts these options:
 
 * `ignore_exceptions` -- an array of exception class names, defaults to ['ActiveRecord::RecordNotFound', 'AbstractController::ActionNotFound', 'ActionController::RoutingError']
 * `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
@@ -42,7 +49,7 @@ WhenAUser::Exceptions accepts these options:
 * `token` -- the token for a WhenAUser channel
 * `custom_data` -- this proc is passed env, and should return a hash to be merged into each event
 
-WhenAUser::Pageviews accepts these options:
+The `pageviews` middleware accepts these options:
 
 * `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
 * `ignore_if` -- this proc is passed env; if it returns true, the pageview is not reported to WhenAUser
@@ -54,8 +61,8 @@ Sending other events
 To manually send an event when a user upgrades to a "premium" account:
 
     WhenAUser.send_event(
-      :_actor => current_user.unique_id, 
-      :_timestamp => Time.now.to_f, 
+      :_actor => current_user.unique_id,
+      :_timestamp => Time.now.to_f,
       :_domain => 'account',
       :_name => 'upgrade',
       :user_email => current_user.email,
