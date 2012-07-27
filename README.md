@@ -17,19 +17,14 @@ In your Gemfile:
 
     gem 'whenauser'
 
-
 For Ruby on Rails
 
-You'll need to create two incoming channels in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
+You should create two incoming channels in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
 
-    token "CHANNEL_TOKEN"
+    token "CHANNEL_TOKEN" # default channel (for user-centric events)
 
     middleware :errors do
-      token "ERROR_CHANNEL_TOKEN"
-    end
-
-    middleware :pageviews do
-      ignore_if lambda { |env| env['action_controller.instance'].is_a? SillyController }
+      token "ERROR_CHANNEL_TOKEN" # channel for error-centric events
     end
 
 Options
@@ -54,6 +49,12 @@ The `pageviews` middleware accepts these options:
 * `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
 * `ignore_if` -- this proc is passed env; if it returns true, the pageview is not reported to WhenAUser
 * `custom_data` -- this proc is passed env, and should return a hash to be merged into each event
+
+Here's an example of how to skip sending any pageview events for all requests to the SillyController:
+
+    middleware :pageviews do
+      ignore_if lambda { |env| env['action_controller.instance'].is_a? SillyController }
+    end
 
 Sending other events
 --------------------
