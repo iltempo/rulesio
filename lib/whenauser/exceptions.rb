@@ -82,6 +82,7 @@ module WhenAUser
       user = current_user(env)
       event.merge!(:current_user => user) if user
       event.merge!(:referer_url => request.referer) if request.referer
+      event.merge!(:rails_env => Rails.env) if defined?(Rails)
       event.merge!(@options[:custom_data].call(env))
       event
     end

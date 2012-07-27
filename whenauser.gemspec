@@ -5,7 +5,7 @@ require 'whenauser/version'
 Gem::Specification.new do |s|
   s.name        = 'whenauser'
   s.version     = WhenAUser::VERSION
-  s.authors     = ['David Anderson']
+  s.authors     = ['David Anderson', 'Chris Weis']
   s.email       = ['david@alpinegizmo.com']
   s.homepage    = 'https://github.com/tractionlabs/whenauser'
   s.summary     = %q{Rack middleware for connecting to WhenAUser}

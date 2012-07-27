@@ -29,8 +29,12 @@ module WhenAUser
     end
 
   private
+    def rails_asset_request?(env, request)
+      defined?(Rails) && env['action_controller.instance'].nil?
+    end
+
     def should_be_ignored(env, request)
-      (defined?(Rails) && env['action_controller.instance'].nil?) ||
+      rails_asset_request?(env, request) ||
       from_crawler(@options[:ignore_crawlers], env['HTTP_USER_AGENT']) ||
       conditionally_ignored(@options[:ignore_if], env)
     end
@@ -63,6 +67,7 @@ module WhenAUser
         :duration => "%.2f" % (duration * 1000)
       }
       event.merge!(:referer_url => request.referer) if request.referer
+      event.merge!(:rails_env => Rails.env) if defined?(Rails)
       event.merge!(@options[:custom_data].call(env))
       event
     end
