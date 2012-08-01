@@ -21,7 +21,7 @@ You also need
 
     gem 'girl_friday', :git => 'git://github.com/mperham/girl_friday.git'
 
-until girl_friday ~> 0.9.7 is released.
+until a version of girl_friday newer than 0.9.7 is released.
 
 ###For Ruby on Rails
 
