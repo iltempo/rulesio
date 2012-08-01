@@ -17,6 +17,13 @@ In your Gemfile:
 
     gem 'whenauser'
 
+You also need
+
+    gem 'girl_friday', :git => 'git://github.com/mperham/girl_friday.git'
+    gem 'connection_pool', :git => 'git://github.com/mperham/connection_pool.git'
+
+until girl_friday ~> 0.9.7 and connection_pool ~> 0.9.2 are released.
+
 ###For Ruby on Rails
 
 You should create two incoming channels in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
