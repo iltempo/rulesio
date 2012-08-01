@@ -42,12 +42,12 @@ By default this gem sends a batch of events to the WhenAUser service synchronous
 You can also pass options to girl_friday. To avoid losing events when your app server instances restart, you can tell girl_friday to use Redis:
 
     queue WhenAUser::GirlFridayQueue, 
-      :store => GirlFriday::Store::Redis, :store_config => [{ :host => 'hostname', :port => 12345 }]
+      :store => GirlFriday::Store::Redis, :store_config => { :host => 'hostname', :port => 12345 }
 
 If you already have a Redis connection pool, you can tell girl_friday to use it:
 
     queue WhenAUser::GirlFridayQueue, 
-      :store => GirlFriday::Store::Redis, :store_config => [{ :redis => $redis }]
+      :store => GirlFriday::Store::Redis, :store_config => { :pool => $redis }
 
 See the [girl_friday wiki](https://github.com/mperham/girl_friday/wiki) for more information on how to use girl_friday.
 
