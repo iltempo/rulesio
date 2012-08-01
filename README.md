@@ -20,9 +20,8 @@ In your Gemfile:
 You also need
 
     gem 'girl_friday', :git => 'git://github.com/mperham/girl_friday.git'
-    gem 'connection_pool', :git => 'git://github.com/mperham/connection_pool.git'
 
-until girl_friday ~> 0.9.7 and connection_pool ~> 0.9.2 are released.
+until girl_friday ~> 0.9.7 is released.
 
 ###For Ruby on Rails
 
