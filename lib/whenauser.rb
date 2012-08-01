@@ -31,7 +31,7 @@ module WhenAUser
     req = Net::HTTP::Post.new(uri.path)
     req.body = payload.to_json
     req.content_type = 'application/json'
-    Net::HTTP.start(uri.hostname, uri.port) do |http|
+    Net::HTTP.start(uri.host, uri.port) do |http|
       http.request(req)
     end
   end
