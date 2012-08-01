@@ -4,9 +4,9 @@ require 'action_controller/log_subscriber'
 
 module Whenauser
   class RailsConfigurator
-    attr_accessor :token, :webhook_url, :middlewares
+    attr_accessor :token, :webhook_url, :middlewares, :queue, :queue_options
     def initialize
-      @webhook_url = 'http://whenauser.com/events/'
+      @webhook_url = 'http://www.whenauser.com/events/'
       @middlewares = {}
     end
 
@@ -20,6 +20,15 @@ module Whenauser
 
     def middleware(middleware, &block)
       @middlewares[middleware] = MiddlewareConfigurator.apply(&block)
+    end
+    
+    def queue(queue, options)
+      @queue = queue
+      @queue_options = options
+    end
+
+    def girl_friday_options(options)
+      @girl_friday_options = options
     end
   end
 
@@ -61,11 +70,13 @@ module Whenauser
         Whenauser::RailsConfigurator.new.instance_eval do
           eval IO.read(filename), binding, filename.to_s, 1
           if defined?(::Rails.configuration) && ::Rails.configuration.respond_to?(:middleware)
-            ::Rails.configuration.middleware.insert_after 'Rack::Lock', 'WhenAUser::Rack',
+            ::Rails.configuration.middleware.insert_after 'ActionDispatch::Static', 'WhenAUser::Rack',
                 :webhook_url => @webhook_url,
-                :token => @token
+                :token => @token,
+                :queue => @queue,
+                :queue_options => @queue_options
             ::Rails.configuration.middleware.use('WhenAUser::Exceptions', @middlewares[:exceptions].configuration) if @middlewares.has_key?(:exceptions)
-            puts "configuration with: #{@middlewares[:pageviews].configuration}"
+            # puts "configuration with: #{@middlewares[:pageviews].configuration}"
             ::Rails.configuration.middleware.insert_after('WhenAUser::Rack', 'WhenAUser::Pageviews', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
           end
         end

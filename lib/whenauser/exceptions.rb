@@ -36,8 +36,7 @@ module WhenAUser
 
   private
     def send_event_now(event, token)
-      event[:_timestamp] = Time.now.to_f unless event[:_timestamp] || event['_timestamp']
-      WhenAUser.endpoint.post token, event.to_json
+      WhenAUser.post_payload_to_token WhenAUser.prepare_event(event), token
     end
 
     def should_be_ignored(env, exception)
@@ -73,7 +72,7 @@ module WhenAUser
         :_domain => 'exception',
         :_name => exception.class.to_s,
         :message => exception.to_s,
-        :backtrace => backtrace.join("\n"),
+        :backtrace => backtrace.join("; "),
         :request_url => request.url,
         :request_method => request.request_method,
         :params => request.params.except(*WhenAUser.filter_parameters),
@@ -82,7 +81,6 @@ module WhenAUser
       user = current_user(env)
       event.merge!(:current_user => user) if user
       event.merge!(:referer_url => request.referer) if request.referer
-      event.merge!(:rails_env => Rails.env) if defined?(Rails)
       event.merge!(@options[:custom_data].call(env))
       event
     end

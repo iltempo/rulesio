@@ -17,15 +17,40 @@ In your Gemfile:
 
     gem 'whenauser'
 
-For Ruby on Rails
+###For Ruby on Rails
 
 You should create two incoming channels in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
 
-    token "CHANNEL_TOKEN" # default channel (for user-centric events)
+    token 'CHANNEL_TOKEN'          # default channel (for user-centric events)
 
     middleware :errors do
-      token "ERROR_CHANNEL_TOKEN" # channel for error-centric events
+      token 'ERROR_CHANNEL_TOKEN'  # channel for error-centric events
     end
+    
+###As general-purpose Rack middleware, without Rails
+
+    config.middleware.use 'WhenAUser::Rack',       :token => 'CHANNEL_TOKEN_'
+    config.middleware.use 'WhenAUser::Exceptions', :token => 'ERROR_CHANNEL_TOKEN'
+
+Using girl_friday for asynchronous communication and persistence
+-----------------
+
+By default this gem sends a batch of events to the WhenAUser service synchronously, at the end of each request to your application. This means that each request to your app will be slowed down by the time it takes to do that communication. In general, this is not going to be acceptable. To avoid this delay, WhenAUser supports the use of the [girl_friday](https://github.com/mperham/girl_friday) gem, which you can enable in your whenauser.rb file:
+
+    queue WhenAUser::GirlFridayQueue
+
+You can also pass options to girl_friday. To avoid losing events when your app server instances restart, you can tell girl_friday to use Redis:
+
+    queue WhenAUser::GirlFridayQueue, 
+      :store => GirlFriday::Store::Redis, :store_config => [{ :host => 'hostname', :port => 12345 }]
+
+If you already have a Redis connection pool, you can tell girl_friday to use it:
+
+    queue WhenAUser::GirlFridayQueue, 
+      :store => GirlFriday::Store::Redis, :store_config => [{ :redis => $redis }]
+
+See the [girl_friday wiki](https://github.com/mperham/girl_friday/wiki) for more information on how to use girl_friday.
+
 
 Options
 -------
@@ -35,13 +60,14 @@ WhenAUser::Rack accepts these options:
 * `token` -- the token for a WhenAUser channel
 * `webhook_url` -- defaults to 'http://whenauser.com/events'
 * `middleware` -- takes the symbol for a middleware and a block, configuring it
+* `queue` -- takes the class used for queuing (default: WhenAUser::MemoryQueue), and an optional hash
 
 The `exceptions` middleware accepts these options:
 
+* `token` -- the token for a WhenAUser error channel
 * `ignore_exceptions` -- an array of exception class names, defaults to ['ActiveRecord::RecordNotFound', 'AbstractController::ActionNotFound', 'ActionController::RoutingError']
 * `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
 * `ignore_if` -- this proc is passed env and an exception; if it returns true, the exception is not reported to WhenAUser
-* `token` -- the token for a WhenAUser channel
 * `custom_data` -- this proc is passed env, and should return a hash to be merged into each event
 
 The `pageviews` middleware accepts these options:
@@ -49,6 +75,8 @@ The `pageviews` middleware accepts these options:
 * `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
 * `ignore_if` -- this proc is passed env; if it returns true, the pageview is not reported to WhenAUser
 * `custom_data` -- this proc is passed env, and should return a hash to be merged into each event
+
+The WhenAUser::Pageviews middleware uses the same token as WhenAUser::Rack.
 
 Here's an example of how to skip sending any pageview events for all requests to the SillyController:
 
