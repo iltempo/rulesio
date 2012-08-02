@@ -37,7 +37,7 @@ module Whenauser
 
     def self.apply(&block)
       x = new
-      x.configure(&block)
+      x.configure(&block) if block_given?
       x
     end
 

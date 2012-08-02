@@ -1,3 +1,4 @@
+require 'singleton'
 require 'girl_friday'
 
 module WhenAUser

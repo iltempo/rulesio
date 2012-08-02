@@ -19,12 +19,12 @@ In your Gemfile:
 
 ###For Ruby on Rails
 
-You should create two incoming channels in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
+You should create two incoming channels (event streams) in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
 
     token 'CHANNEL_TOKEN'          # default channel (for user-centric events)
-
-    middleware :errors do
-      token 'ERROR_CHANNEL_TOKEN'  # channel for error-centric events
+    middleware :pageviews          # automatically generate events for pageviews
+    middleware :exceptions do      # automatically generate events for exceptions
+      token 'ERROR_CHANNEL_TOKEN'  # separate channel for error-centric events
     end
     
 ###As general-purpose Rack middleware, without Rails
