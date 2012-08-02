@@ -22,14 +22,15 @@ In your Gemfile:
 You should create two incoming channels (event streams) in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
 
     token 'CHANNEL_TOKEN'          # default channel (for user-centric events)
-    middleware :pageviews          # automatically generate events for pageviews
+    middleware :pageviews          # automatically generate events for requests/pageviews
     middleware :exceptions do      # automatically generate events for exceptions
       token 'ERROR_CHANNEL_TOKEN'  # separate channel for error-centric events
     end
     
 ###As general-purpose Rack middleware, without Rails
 
-    config.middleware.use 'WhenAUser::Rack',       :token => 'CHANNEL_TOKEN_'
+    config.middleware.insert 0, 'WhenAUser::Rack', :token => 'CHANNEL_TOKEN'
+    config.middleware.insert_after 'WhenAUser::Rack', 'WhenAUser::Pageviews'
     config.middleware.use 'WhenAUser::Exceptions', :token => 'ERROR_CHANNEL_TOKEN'
 
 Using girl_friday for asynchronous communication and persistence
