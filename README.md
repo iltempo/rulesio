@@ -27,7 +27,7 @@ You should create two incoming channels (event streams) in WhenAUser, and config
       token 'ERROR_CHANNEL_TOKEN'  # separate channel for error-centric events
     end
     
-###As general-purpose Rack middleware, without Rails
+###As general-purpose Rack middleware, with or without Rails
 
     config.middleware.insert 0, 'WhenAUser::Rack', :token => 'CHANNEL_TOKEN'
     config.middleware.insert_after 'WhenAUser::Rack', 'WhenAUser::Pageviews'
