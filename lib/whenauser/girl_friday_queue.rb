@@ -8,7 +8,17 @@ module WhenAUser
   
     def initialize
       super(:whenauser, {:size => 1}.merge(WhenAUser.queue_options)) do |msg|
-        WhenAUser.post_payload_to_token msg[:payload], WhenAUser.token
+        retries = 0
+        begin
+          WhenAUser.post_payload_to_token msg[:payload], WhenAUser.token
+        rescue Exception => e
+          if (retries += 1) % 6 == 5
+            WhenAUser.logger.warn "WhenAUser having trouble sending events; #{retries} attempts so far."
+          end
+          sleep [5, retries].max
+          retry
+        end
+        WhenAUser.logger.warn "WhenAUser resuming service after #{retries} retries." unless retries == 0
       end
     end
 

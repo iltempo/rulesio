@@ -6,10 +6,11 @@ require 'whenauser/girl_friday_queue'
 require 'whenauser/memory_queue'
 require 'net/http'
 require 'uri'
+require 'logger'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module WhenAUser
-  mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options
+  mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options, :logger
 
   def self.default_ignored_crawlers
     %w(Baidu Gigabot Googlebot libwww-perl lwp-trivial msnbot SiteUptime Slurp WordPress ZIBB ZyBorg Yandex Jyxobot Huaweisymantecspider ApptusBot)
@@ -45,6 +46,7 @@ module WhenAUser
   class Rack
     def initialize(app, options={})
       @app = app
+      WhenAUser.logger = defined?(Rails) ? Rails.logger : Logger.new(STDOUT)
       WhenAUser.webhook_url = options[:webhook_url] || 'http://www.whenauser.com/events/'
       WhenAUser.buffer = []
       WhenAUser.filter_parameters = defined?(Rails) ? Rails.application.config.filter_parameters : []
