@@ -18,5 +18,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'activesupport'
   s.add_runtime_dependency 'actionpack'
-  s.add_runtime_dependency 'girl_friday', '0.9.7'
+  s.add_runtime_dependency 'girl_friday', '~> 0.10.0'
 end
