@@ -9,7 +9,7 @@ require 'uri'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module WhenAUser
-  mattr_accessor :endpoint, :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options
+  mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options
 
   def self.default_ignored_crawlers
     %w(Baidu Gigabot Googlebot libwww-perl lwp-trivial msnbot SiteUptime Slurp WordPress ZIBB ZyBorg Yandex Jyxobot Huaweisymantecspider ApptusBot)
