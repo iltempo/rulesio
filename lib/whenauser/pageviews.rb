@@ -16,6 +16,7 @@ module WhenAUser
     end
 
     def call(env)
+      request = ActionDispatch::Request.new(env)
       before = Time.now
       status, headers, response = @app.call(env)
       [status, headers, response]
@@ -24,7 +25,6 @@ module WhenAUser
       raise e
     ensure
       after = Time.now
-      request = ActionDispatch::Request.new(env)
       WhenAUser.send_event event(env, request, status, after - before) unless should_be_ignored(env, request)
     end
 
@@ -45,7 +45,7 @@ module WhenAUser
       false
     end
 
-    def event_name(request)
+    def page_event_name(request)
       if (params = request.params)['controller']
         "#{params['controller']}##{params['action']}"
       else
@@ -57,8 +57,8 @@ module WhenAUser
       actor = current_user(env) || 'anonymous'
       event = {
         :_actor => actor,
-        :_domain => 'pageview',
-        :_name => event_name(request),
+        :_domain => (status >= 400) ? 'pageerror' : 'pageview',
+        :_name => page_event_name(request),
         :request_url => request.url,
         :request_method => request.request_method,
         :params => request.params.except(*WhenAUser.filter_parameters),
@@ -66,6 +66,10 @@ module WhenAUser
         :status => status,
         :duration => "%.2f" % (duration * 1000)
       }
+      if exception = env['whenauser.exception']
+        event.merge!(:error => actor_for_exception(exception))
+        event.merge!(:message => exception.to_s)
+      end
       event.merge!(:referer_url => request.referer) if request.referer
       event.merge!(:rails_env => Rails.env) if defined?(Rails)
       event.merge!(@options[:custom_data].call(env))

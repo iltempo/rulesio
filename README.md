@@ -36,7 +36,7 @@ You should create two incoming channels (event streams) in WhenAUser, and config
 Using girl_friday for asynchronous communication and persistence
 -----------------
 
-By default this gem sends a batch of events to the WhenAUser service synchronously, at the end of each request to your application. This means that each request to your app will be slowed down by the time it takes to do that communication. In general, this is not going to be acceptable. To avoid this delay, WhenAUser supports the use of the [girl_friday](https://github.com/mperham/girl_friday) gem, which you can enable in your whenauser.rb file:
+By default this gem sends a batch of events to the WhenAUser service synchronously, at the end of each request to your application. This means that each request to your app will be slowed down by the time it takes to do that communication. While this is fine for development or for low-volume sites, for those who wish to avoid this delay WhenAUser supports the use of the [girl_friday](https://github.com/mperham/girl_friday) gem, which you can enable in your whenauser.rb file:
 
     queue WhenAUser::GirlFridayQueue
 

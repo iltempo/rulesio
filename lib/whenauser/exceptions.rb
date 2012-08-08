@@ -29,6 +29,7 @@ module WhenAUser
       begin
         @app.call(env)
       rescue Exception => exception
+        env['whenauser.exception'] = exception
         send_event_now event(env, exception), @options[:token] unless should_be_ignored(env, exception)
         raise exception
       end
@@ -55,24 +56,15 @@ module WhenAUser
       false
     end
 
-    def clean_backtrace(exception)
-      if defined?(Rails) && Rails.respond_to?(:backtrace_cleaner)
-        Rails.backtrace_cleaner.send(:filter, exception.backtrace)
-      else
-        exception.backtrace
-      end
-    end
-
     def event(env, exception)
       request = ActionDispatch::Request.new(env)
       backtrace = clean_backtrace(exception)
-      actor = backtrace.first.match(/^(.*:.*):/)[1] rescue @app.to_s
       event = {
-        :_actor => actor,
+        :_actor => actor_for_exception(exception),
         :_domain => 'exception',
         :_name => exception.class.to_s,
         :message => exception.to_s,
-        :backtrace => backtrace.join("; "),
+        :backtrace => backtrace.join("\n"),
         :request_url => request.url,
         :request_method => request.request_method,
         :params => request.params.except(*WhenAUser.filter_parameters),
