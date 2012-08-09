@@ -55,7 +55,7 @@ module WhenAUser
 
     def event(env, request, status, duration)
       event = {
-        :_domain => (status >= 400) ? 'pageerror' : 'pageview',
+        :_domain => (status.to_i >= 400) ? 'pageerror' : 'pageview',
         :_name => page_event_name(request),
         :status => status,
         :duration => "%.2f" % (duration * 1000)
