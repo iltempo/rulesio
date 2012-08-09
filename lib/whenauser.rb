@@ -62,9 +62,9 @@ module WhenAUser
       event[:request_method] = env['whenauser.request_method']
       event[:user_agent] = env['whenauser.user_agent']
       event[:referer_url] = env['whenauser.referer_url'] if env['whenauser.referer_url']
+      request = ActionDispatch::Request.new(env)
+      event[:params] = request.params.except(*WhenAUser.filter_parameters)
     end
-    request = ActionDispatch::Request.new(env)
-    event[:params] = request.params.except(*WhenAUser.filter_parameters)
     event.merge!(WhenAUser.custom_data.call(env))
     event
   end
