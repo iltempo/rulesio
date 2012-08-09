@@ -7,18 +7,6 @@ module WhenAUser
       false
     end
 
-    def current_user(env)
-      controller = env['action_controller.instance']
-      if current_user = controller.instance_variable_get('@current_user') || controller.instance_eval('current_user')
-        [:login, :username, :email, :id].each do |field|
-          return current_user.send(field) if current_user.respond_to?(field)
-        end
-      end
-      nil
-    rescue
-      nil
-    end
-
     def clean_backtrace(exception)
       if defined?(Rails) && Rails.respond_to?(:backtrace_cleaner)
         Rails.backtrace_cleaner.send(:filter, exception.backtrace)

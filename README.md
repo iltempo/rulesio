@@ -57,7 +57,6 @@ to your Gemfile, and add something like this to `config/whenauser.rb`:
 
 See the [girl_friday wiki](https://github.com/mperham/girl_friday/wiki) for more information on how to use girl_friday.
 
-
 Options
 -------
 
@@ -67,6 +66,7 @@ WhenAUser::Rack accepts these options:
 * `webhook_url` -- defaults to 'http://whenauser.com/events'
 * `middleware` -- takes the symbol for a middleware and a block, configuring it
 * `queue` -- takes the class used for queuing (default: WhenAUser::MemoryQueue), and an optional hash
+* `custom_data` -- this proc is passed env, and should return a hash to be merged into every event
 
 The `exceptions` middleware accepts these options:
 
@@ -74,13 +74,13 @@ The `exceptions` middleware accepts these options:
 * `ignore_exceptions` -- an array of exception class names, defaults to ['ActiveRecord::RecordNotFound', 'AbstractController::ActionNotFound', 'ActionController::RoutingError']
 * `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
 * `ignore_if` -- this proc is passed env and an exception; if it returns true, the exception is not reported to WhenAUser
-* `custom_data` -- this proc is passed env, and should return a hash to be merged into each event
+* `custom_data` -- this proc is passed env, and should return a hash to be merged into each automatically generated exception event
 
 The `pageviews` middleware accepts these options:
 
 * `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
 * `ignore_if` -- this proc is passed env; if it returns true, the pageview is not reported to WhenAUser
-* `custom_data` -- this proc is passed env, and should return a hash to be merged into each event
+* `custom_data` -- this proc is passed env, and should return a hash to be merged into each automatically generated event
 
 The WhenAUser::Pageviews middleware uses the same token as WhenAUser::Rack.
 
@@ -123,3 +123,8 @@ Use Cases
 * add a data point to a Librato graph
 * tag a user in WhenAUser, or in your CRM
 * segment a user in your email campaign tool
+
+Compatibility
+-------------
+
+This gem can be used without Rails, but when used with Rails it depends on Rails 3 (we've tested with Rails 3.1 and 3.2). If you want to use girl_friday, you must use Ruby 1.9.2 or greater, JRuby, or Rubinius.

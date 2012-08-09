@@ -54,15 +54,9 @@ module WhenAUser
     end
 
     def event(env, request, status, duration)
-      actor = current_user(env) || 'anonymous'
       event = {
-        :_actor => actor,
         :_domain => (status >= 400) ? 'pageerror' : 'pageview',
         :_name => page_event_name(request),
-        :request_url => request.url,
-        :request_method => request.request_method,
-        :params => request.params.except(*WhenAUser.filter_parameters),
-        :user_agent => request.user_agent,
         :status => status,
         :duration => "%.2f" % (duration * 1000)
       }
@@ -70,8 +64,6 @@ module WhenAUser
         event.merge!(:error => actor_for_exception(exception))
         event.merge!(:message => exception.to_s)
       end
-      event.merge!(:referer_url => request.referer) if request.referer
-      event.merge!(:rails_env => Rails.env) if defined?(Rails)
       event.merge!(@options[:custom_data].call(env))
       event
     end

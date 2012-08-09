@@ -30,14 +30,14 @@ module WhenAUser
         @app.call(env)
       rescue Exception => exception
         env['whenauser.exception'] = exception
-        send_event_now event(env, exception), @options[:token] unless should_be_ignored(env, exception)
+        send_event_now event(env, exception), @options[:token], env unless should_be_ignored(env, exception)
         raise exception
       end
     end
 
   private
-    def send_event_now(event, token)
-      WhenAUser.post_payload_to_token WhenAUser.prepare_event(event), token
+    def send_event_now(event, token, env)
+      WhenAUser.post_payload_to_token WhenAUser.prepare_event(event, env), token
     end
 
     def should_be_ignored(env, exception)
@@ -57,22 +57,16 @@ module WhenAUser
     end
 
     def event(env, exception)
-      request = ActionDispatch::Request.new(env)
       backtrace = clean_backtrace(exception)
       event = {
         :_actor => actor_for_exception(exception),
         :_domain => 'exception',
         :_name => exception.class.to_s,
         :message => exception.to_s,
-        :backtrace => backtrace.join("\n"),
-        :request_url => request.url,
-        :request_method => request.request_method,
-        :params => request.params.except(*WhenAUser.filter_parameters),
-        :user_agent => request.user_agent
+        :backtrace => backtrace.join("\n")
       }
-      user = current_user(env)
+      user = WhenAUser.current_user(env)
       event.merge!(:current_user => user) if user
-      event.merge!(:referer_url => request.referer) if request.referer
       event.merge!(@options[:custom_data].call(env))
       event
     end

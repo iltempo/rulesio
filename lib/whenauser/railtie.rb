@@ -1,6 +1,5 @@
 require 'rails/railtie'
-require 'action_view/log_subscriber'
-require 'action_controller/log_subscriber'
+require 'active_record'
 
 module Whenauser
   class RailsConfigurator
@@ -80,6 +79,13 @@ module Whenauser
             ::Rails.configuration.middleware.insert_after('WhenAUser::Rack', 'WhenAUser::Pageviews', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
           end
         end
+      end
+    end
+
+    config.after_initialize do
+      ActiveSupport.on_load(:active_record) do
+        require 'whenauser/active_record_extension'
+        include ActiveRecord::WhenAUserExtension
       end
     end
   end
