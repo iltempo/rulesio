@@ -90,6 +90,12 @@ Here's an example of how to skip sending any pageview events for all requests to
       ignore_if lambda { |env| env['action_controller.instance'].is_a? SillyController }
     end
 
+Or if you want to skip sending pageview events for requests from pingdom.com:
+
+    middleware :pageviews do
+      ignore_crawlers WhenAUser.default_ignored_crawlers + ['Pingdom.com_bot']
+    end
+
 Sending other events
 --------------------
 
@@ -109,7 +115,7 @@ Use Cases
 ### Example rule triggers
 
 * whenever a `UserIsHavingAVeryBadDay` exception is raised
-* the first time any exception occurs
+* the first time any particular exception occurs
 * whenever a request takes more than 20 seconds to process
 * whenever someone upgrades their account
 * whenever someone does comment#create more than 10 times in a day
@@ -120,7 +126,7 @@ Use Cases
 * send yourself an email or a mobile push message
 * send a user an email or a mobile push message
 * create a ticket in your ticketing system
-* add a data point to a Librato graph
+* add a data point to a Librato or StatsMix graph
 * tag a user in WhenAUser, or in your CRM
 * segment a user in your email campaign tool
 
