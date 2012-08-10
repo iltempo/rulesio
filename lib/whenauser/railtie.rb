@@ -74,9 +74,8 @@ module Whenauser
                 :token => @token,
                 :queue => @queue,
                 :queue_options => @queue_options
+            ::Rails.configuration.middleware.use('WhenAUser::Pageviews', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
             ::Rails.configuration.middleware.use('WhenAUser::Exceptions', @middlewares[:exceptions].configuration) if @middlewares.has_key?(:exceptions)
-            # puts "configuration with: #{@middlewares[:pageviews].configuration}"
-            ::Rails.configuration.middleware.insert_after('WhenAUser::Rack', 'WhenAUser::Pageviews', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
           end
         end
       end

@@ -30,7 +30,7 @@ You should create two incoming channels (event streams) in WhenAUser, and config
 ###As general-purpose Rack middleware, with or without Rails
 
     config.middleware.insert 0, 'WhenAUser::Rack', :token => 'CHANNEL_TOKEN'
-    config.middleware.insert_after 'WhenAUser::Rack', 'WhenAUser::Pageviews'
+    config.middleware.use 'WhenAUser::Pageviews'
     config.middleware.use 'WhenAUser::Exceptions', :token => 'ERROR_CHANNEL_TOKEN'
 
 Using girl_friday for asynchronous communication and persistence

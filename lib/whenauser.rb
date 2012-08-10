@@ -8,24 +8,23 @@ require 'net/http'
 require 'uri'
 require 'logger'
 require 'active_support/core_ext/module/attribute_accessors'
+require 'active_support/core_ext/hash/indifferent_access'
 
 module WhenAUser
   mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options, :custom_data, :logger
 
   def self.default_ignored_crawlers
-    %w(Baidu Gigabot Googlebot libwww-perl lwp-trivial msnbot SiteUptime Slurp WordPress ZIBB ZyBorg Yandex Jyxobot Huaweisymantecspider ApptusBot)
+    %w(Baidu Gigabot Googlebot libwww-perl lwp-trivial msnbot SiteUptime Slurp WordPress ZIBB ZyBorg Yandex Jyxobot Huaweisymantecspider ApptusBot NewRelicPinger)
   end
 
   def self.send_event(event)
-    logger.debug "============= #{event.inspect} ============="
     buffer << event
   end
 
   def self.flush(env={})
     return if (events = WhenAUser.buffer).empty?
     WhenAUser.buffer = []
-    events.each {|event| WhenAUser.prepare_event(event, env)}
-    WhenAUser.queue.push(:payload => events)
+    WhenAUser.queue.push(:payload => events.map {|event| WhenAUser.prepare_event(event, env)})
     # WhenAUser.post_payload_to_token events.to_json, WhenAUser.token
   end
   
@@ -53,18 +52,33 @@ module WhenAUser
   end
 
   private
-  def self.prepare_event(event, env)
-    event[:_actor] ||= current_user(env) || 'anonymous'
-    event[:_timestamp] = Time.now.to_f unless (event[:_timestamp] || event['_timestamp'])
-    event[:rails_env] = Rails.env if defined?(Rails)
-    unless env.empty?
-      event[:request_url] = env['whenauser.request_url']
-      event[:request_method] = env['whenauser.request_method']
-      event[:user_agent] = env['whenauser.user_agent']
-      event[:referer_url] = env['whenauser.referer_url'] if env['whenauser.referer_url']
-      request = ActionDispatch::Request.new(env)
-      event[:params] = request.params.except(*WhenAUser.filter_parameters)
+  def self.page_event_name(request, params)
+    if params && params['controller']
+      "#{params['controller']}##{params['action']}"
+    else
+      request.path.gsub('/', '-')[1..-1]
     end
+  end
+
+  def self.prepare_event(event, env)
+    event = event.with_indifferent_access
+    event[:_actor] ||= current_user(env) || 'anonymous'
+    event[:_timestamp] ||= Time.now.to_f
+    event[:rails_env] = Rails.env if defined?(Rails)
+
+    unless env.empty?
+      env['rack.input'].rewind
+      request = defined?(Rails) ? ActionDispatch::Request.new(env) : ::Rack::Request.new(env)
+      params = request.params
+
+      event[:_name] ||= page_event_name(request, params)
+      event[:request_url] = request.url
+      event[:request_method] = request.request_method
+      event[:user_agent] = request.user_agent
+      event[:referer_url] = request.referer if request.referer.present?
+      event[:params] = params
+    end
+
     event.merge!(WhenAUser.custom_data.call(env))
     event
   end
@@ -84,11 +98,6 @@ module WhenAUser
 
     def call(env)
       WhenAUser.buffer = []
-      request = ActionDispatch::Request.new(env)
-      env['whenauser.request_url'] = request.url
-      env['whenauser.request_method'] = request.request_method
-      env['whenauser.user_agent'] = request.user_agent
-      env['whenauser.referer_url'] = request.referer
       @app.call(env)
     ensure
       WhenAUser.flush(env)
