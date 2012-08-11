@@ -3,12 +3,12 @@ WhenAUser
 
 [WhenAUser.com](http://whenauser.com) is a rules engine that reacts to things users do or experience in your software, and makes things happen in 3rd party SaaS APIs -- without your having to write any code. Rather than implementing the most rapidly evolving parts of your application's business logic in code, your team can use the WhenAUser web app to specify "when", "how", and "who", with rules like these:
 
-* when a user gets a validation error twice for the same form, send an email to Frank
-* when a premium customer hasn't logged in for a month, flag them in Highrise
+* when a user gets a form validation error three times in an hour, send an email to Frank
+* when a premium customer hasn't logged in for a month, flag them in your CRM
 * when a user gets a 500 response, create a ticket in Zendesk
 * when a user invites ten friends, add them to the "well-connected" segment in MailChimp
 
-This gem contains Rack middleware that automatically generates two event streams, one for exceptions and the other for pageviews, that can be used to trigger rules in WhenAUser. You can (and probably should) also send more specific events manually.
+This gem contains Rack middleware that automatically generates two event streams, one for exceptions and the other for pageviews, that can be used to trigger rules in WhenAUser. You can also send more specific events manually.
 
 Setup
 -----
@@ -32,6 +32,28 @@ You should create two incoming channels (event streams) in WhenAUser, and config
     config.middleware.insert 0, 'WhenAUser::Rack', :token => 'CHANNEL_TOKEN'
     config.middleware.use 'WhenAUser::Pageviews'
     config.middleware.use 'WhenAUser::Exceptions', :token => 'ERROR_CHANNEL_TOKEN'
+
+The current user
+----------------
+
+WhenAUser can take advantage of knowing about the user behind each event, which is supplied by the \_actor field. This gem employs a number of heuristics to determine the current user, but you can also help it out. If, for example, you want to use current_user.id as the \_actor for every event (and 0 for the logged out user), you could do this via:
+
+    controller_data '{:_actor => current_user.try(:id) || 0}'
+
+The string will be evaluated in the context of your controller.
+
+Sending other events
+--------------------
+
+To manually send an event when a user upgrades to a "premium" account:
+
+    WhenAUser.send_event(
+      :_actor => current_user.unique_id,
+      :_timestamp => Time.now.to_f,
+      :_domain => 'account',
+      :_name => 'upgrade',
+      :user_email => current_user.email,
+      :plan => 'premium' )
 
 Using girl_friday for asynchronous communication and persistence
 -----------------
@@ -66,7 +88,7 @@ WhenAUser::Rack accepts these options:
 * `webhook_url` -- defaults to 'http://whenauser.com/events'
 * `middleware` -- takes the symbol for a middleware and a block, configuring it
 * `queue` -- takes the class used for queuing (default: WhenAUser::MemoryQueue), and an optional hash
-* `custom_data` -- this proc is passed env, and should return a hash to be merged into every event
+* `controller_data` -- a string evaluated in the context of the Rails controller (if any) handling the request; it should return a hash to be merged into every event
 
 The `exceptions` middleware accepts these options:
 
@@ -80,6 +102,7 @@ The `pageviews` middleware accepts these options:
 
 * `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
 * `ignore_if` -- this proc is passed env; if it returns true, the pageview is not reported to WhenAUser
+* `ignore_if_controller` -- a string to be evaluated in the context of the Rails controller instance
 * `custom_data` -- this proc is passed env, and should return a hash to be merged into each automatically generated event
 
 The WhenAUser::Pageviews middleware uses the same token as WhenAUser::Rack.
@@ -90,24 +113,17 @@ Here's an example of how to skip sending any pageview events for all requests to
       ignore_if lambda { |env| env['action_controller.instance'].is_a? SillyController }
     end
 
+To make life easier in the case where you want a condition evaluated in the context of a Rails controller, you can do the same thing like this. (Only the pageviews middleware supports ignore_if_controller.)
+
+    middleware :pageviews do
+      ignore_if_controller 'self.is_a?(EventsController)'
+    end
+
 Or if you want to skip sending pageview events for requests from pingdom.com:
 
     middleware :pageviews do
       ignore_crawlers WhenAUser.default_ignored_crawlers + ['Pingdom.com_bot']
     end
-
-Sending other events
---------------------
-
-To manually send an event when a user upgrades to a "premium" account:
-
-    WhenAUser.send_event(
-      :_actor => current_user.unique_id,
-      :_timestamp => Time.now.to_f,
-      :_domain => 'account',
-      :_name => 'upgrade',
-      :user_email => current_user.email,
-      :plan => 'premium' )
 
 Use Cases
 ---------

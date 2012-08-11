@@ -11,7 +11,7 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/hash/indifferent_access'
 
 module WhenAUser
-  mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options, :custom_data, :logger
+  mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options, :controller_data, :logger
 
   def self.default_ignored_crawlers
     %w(Baidu Gigabot Googlebot libwww-perl lwp-trivial msnbot SiteUptime Slurp WordPress ZIBB ZyBorg Yandex Jyxobot Huaweisymantecspider ApptusBot NewRelicPinger)
@@ -62,7 +62,13 @@ module WhenAUser
 
   def self.prepare_event(event, env)
     event = event.with_indifferent_access
-    event[:_actor] ||= current_user(env) || 'anonymous'
+
+    if controller = env['action_controller.instance']
+      data = controller.instance_eval(WhenAUser.controller_data)
+      event.merge!(data)
+    end
+
+    event[:_actor] = current_user(env) || 'anonymous' unless event[:_actor].present?
     event[:_timestamp] ||= Time.now.to_f
     event[:rails_env] = Rails.env if defined?(Rails)
 
@@ -79,7 +85,6 @@ module WhenAUser
       event[:params] = params
     end
 
-    event.merge!(WhenAUser.custom_data.call(env))
     event
   end
 
@@ -93,7 +98,7 @@ module WhenAUser
       WhenAUser.token = options[:token]
       WhenAUser.queue = options[:queue] || WhenAUser::MemoryQueue
       WhenAUser.queue_options = options[:queue_options] || {}
-      WhenAUser.custom_data = options[:custom_data] || lambda { |env| {} }
+      WhenAUser.controller_data = options[:controller_data] || lambda { {} }
     end
 
     def call(env)

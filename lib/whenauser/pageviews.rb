@@ -10,9 +10,10 @@ module WhenAUser
 
     def initialize(app, options={})
       @app, @options = app, options
-      @options[:ignore_crawlers]   ||= WhenAUser.default_ignored_crawlers
-      @options[:ignore_if]         ||= lambda { |env| false }
-      @options[:custom_data]       ||= lambda { |env| {} }
+      @options[:ignore_crawlers]      ||= WhenAUser.default_ignored_crawlers
+      @options[:ignore_if]            ||= lambda { |env| false }
+      @options[:ignore_if_controller] ||= ''
+      @options[:custom_data]          ||= lambda { |env| {} }
     end
 
     def call(env)
@@ -35,13 +36,17 @@ module WhenAUser
     def should_be_ignored(env)
       rails_asset_request?(env) ||
       from_crawler(@options[:ignore_crawlers], env['HTTP_USER_AGENT']) ||
-      conditionally_ignored(@options[:ignore_if], env)
+      conditionally_ignored(@options[:ignore_if], env) ||
+      conditionally_ignored_controller(@options[:ignore_if_controller], env)
+    end
+
+    def conditionally_ignored_controller(condition, env)
+      controller = env['action_controller.instance']
+      controller.instance_eval condition
     end
 
     def conditionally_ignored(ignore_proc, env)
       ignore_proc.call(env)
-    rescue Exception => ex
-      false
     end
 
     def event(env, status, duration)

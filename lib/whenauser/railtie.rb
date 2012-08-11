@@ -3,7 +3,7 @@ require 'active_record'
 
 module Whenauser
   class RailsConfigurator
-    attr_accessor :token, :webhook_url, :middlewares, :queue, :queue_options
+    attr_accessor :token, :webhook_url, :middlewares, :queue, :controller_data, :queue_options
     def initialize
       @webhook_url = 'http://www.whenauser.com/events/'
       @middlewares = {}
@@ -24,6 +24,10 @@ module Whenauser
     def queue(queue, options)
       @queue = queue
       @queue_options = options
+    end
+
+    def controller_data(data)
+      @controller_data = data
     end
 
     def girl_friday_options(options)
@@ -73,7 +77,8 @@ module Whenauser
                 :webhook_url => @webhook_url,
                 :token => @token,
                 :queue => @queue,
-                :queue_options => @queue_options
+                :queue_options => @queue_options,
+                :controller_data => @controller_data
             ::Rails.configuration.middleware.use('WhenAUser::Pageviews', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
             ::Rails.configuration.middleware.use('WhenAUser::Exceptions', @middlewares[:exceptions].configuration) if @middlewares.has_key?(:exceptions)
           end
