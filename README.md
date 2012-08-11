@@ -45,6 +45,8 @@ The string will be evaluated in the context of your controller.
 Sending other events
 --------------------
 
+Every event must contain the \_actor, \_timestamp, \_domain and \_name fields. Beyond those fields, you can include any additional data you choose. See [docs](http://whenauser.com/docs) for more details.
+
 To manually send an event when a user upgrades to a "premium" account:
 
     WhenAUser.send_event(
