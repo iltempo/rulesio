@@ -12,7 +12,7 @@ module WhenAUser
       @app, @options = app, options
       @options[:ignore_crawlers]      ||= WhenAUser.default_ignored_crawlers
       @options[:ignore_if]            ||= lambda { |env| false }
-      @options[:ignore_if_controller] ||= ''
+      @options[:ignore_if_controller] ||= 'false'
       @options[:custom_data]          ||= lambda { |env| {} }
     end
 

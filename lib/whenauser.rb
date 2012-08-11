@@ -98,7 +98,7 @@ module WhenAUser
       WhenAUser.token = options[:token]
       WhenAUser.queue = options[:queue] || WhenAUser::MemoryQueue
       WhenAUser.queue_options = options[:queue_options] || {}
-      WhenAUser.controller_data = options[:controller_data] || lambda { {} }
+      WhenAUser.controller_data = options[:controller_data] || '{}'
     end
 
     def call(env)
