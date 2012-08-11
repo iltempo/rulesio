@@ -8,7 +8,7 @@ WhenAUser
 * when a user gets a 500 response, create a ticket in Zendesk
 * when a user invites ten friends, add them to the "well-connected" segment in MailChimp
 
-This gem contains Rack middleware that automatically generates two event streams, one for exceptions and the other for pageviews, that can be used to trigger rules in WhenAUser. You can also send more specific events manually.
+This gem contains Rack middleware that automatically generates two event streams, one about exceptions and the other about user activity (pageviews, errors, attempts to save invalid models), that can be used to trigger rules in WhenAUser. You can also send more specific events manually.
 
 Setup
 -----
@@ -22,7 +22,7 @@ In your Gemfile:
 You should create two incoming channels (event streams) in WhenAUser, and configure their tokens in `config/whenauser.rb` (the available options are explained below). You may want to create additional channels to use in other environments, eg for staging.
 
     token 'CHANNEL_TOKEN'          # default channel (for user-centric events)
-    middleware :pageviews          # automatically generate events for requests/pageviews
+    middleware :users              # automatically generate events about user activity
     middleware :exceptions do      # automatically generate events for exceptions
       token 'ERROR_CHANNEL_TOKEN'  # separate channel for error-centric events
     end
@@ -30,7 +30,7 @@ You should create two incoming channels (event streams) in WhenAUser, and config
 ###As general-purpose Rack middleware, with or without Rails
 
     config.middleware.insert 0, 'WhenAUser::Rack', :token => 'CHANNEL_TOKEN'
-    config.middleware.use 'WhenAUser::Pageviews'
+    config.middleware.use 'WhenAUser::Users'
     config.middleware.use 'WhenAUser::Exceptions', :token => 'ERROR_CHANNEL_TOKEN'
 
 The current user
@@ -89,41 +89,41 @@ WhenAUser::Rack accepts these options:
 * `token` -- the token for a WhenAUser channel
 * `webhook_url` -- defaults to 'http://whenauser.com/events'
 * `middleware` -- takes the symbol for a middleware and a block, configuring it
-* `queue` -- takes the class used for queuing (default: WhenAUser::MemoryQueue), and an optional hash
-* `controller_data` -- a string evaluated in the context of the Rails controller (if any) handling the request; it should return a hash to be merged into every event
+* `queue` -- takes the class used for queuing (default: WhenAUser::MemoryQueue), and an optional hash; see the section on girl_friday for examples
+* `controller_data` -- a string evaluated in the context of the Rails controller (if any) handling the request; it should return a hash to be merged into every event (both automatically generated and manually triggered events)
 
 The `exceptions` middleware accepts these options:
 
 * `token` -- the token for a WhenAUser error channel
 * `ignore_exceptions` -- an array of exception class names, defaults to ['ActiveRecord::RecordNotFound', 'AbstractController::ActionNotFound', 'ActionController::RoutingError']
-* `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
+* `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default; matching requests do not generate events
 * `ignore_if` -- this proc is passed env and an exception; if it returns true, the exception is not reported to WhenAUser
 * `custom_data` -- this proc is passed env, and should return a hash to be merged into each automatically generated exception event
 
-The `pageviews` middleware accepts these options:
+The `users` middleware accepts these options:
 
-* `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default
-* `ignore_if` -- this proc is passed env; if it returns true, the pageview is not reported to WhenAUser
-* `ignore_if_controller` -- a string to be evaluated in the context of the Rails controller instance
+* `ignore_crawlers` -- an array of strings to match against the user agent, includes a number of webcrawlers by default; matching requests do not generate events
+* `ignore_if` -- this proc is passed env; if it returns true, no automatic events are reported to WhenAUser for this request
+* `ignore_if_controller` -- a string to be evaluated in the context of the Rails controller instance; if it evaluates to true, no automatic events are reported to WhenAUser for this request
 * `custom_data` -- this proc is passed env, and should return a hash to be merged into each automatically generated event
 
-The WhenAUser::Pageviews middleware uses the same token as WhenAUser::Rack.
+The WhenAUser::Users middleware uses the same token as WhenAUser::Rack.
 
-Here's an example of how to skip sending any pageview events for all requests to the SillyController:
+Here's an example of how to skip sending any user events for all requests to the SillyController:
 
-    middleware :pageviews do
+    middleware :users do
       ignore_if lambda { |env| env['action_controller.instance'].is_a? SillyController }
     end
 
-To make life easier in the case where you want a condition evaluated in the context of a Rails controller, you can do the same thing like this. (Only the pageviews middleware supports ignore_if_controller.)
+To make life easier in the case where you want a condition evaluated in the context of a Rails controller, you can do the same thing like this. (Only the users middleware supports ignore_if_controller.)
 
-    middleware :pageviews do
+    middleware :users do
       ignore_if_controller 'self.is_a?(EventsController)'
     end
 
 Or if you want to skip sending pageview events for requests from pingdom.com:
 
-    middleware :pageviews do
+    middleware :users do
       ignore_crawlers WhenAUser.default_ignored_crawlers + ['Pingdom.com_bot']
     end
 

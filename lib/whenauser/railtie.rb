@@ -79,7 +79,8 @@ module Whenauser
                 :queue => @queue,
                 :queue_options => @queue_options,
                 :controller_data => @controller_data
-            ::Rails.configuration.middleware.use('WhenAUser::Pageviews', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
+            ::Rails.configuration.middleware.use('WhenAUser::Users', @middlewares[:users].configuration) if @middlewares.has_key?(:users)
+            ::Rails.configuration.middleware.use('WhenAUser::Users', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
             ::Rails.configuration.middleware.use('WhenAUser::Exceptions', @middlewares[:exceptions].configuration) if @middlewares.has_key?(:exceptions)
           end
         end

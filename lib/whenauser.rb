@@ -1,7 +1,7 @@
 require 'whenauser/version'
 require 'whenauser/helpers'
 require 'whenauser/exceptions'
-require 'whenauser/pageviews'
+require 'whenauser/users'
 require 'whenauser/girl_friday_queue'
 require 'whenauser/memory_queue'
 require 'net/http'

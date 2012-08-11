@@ -5,7 +5,7 @@
 require 'action_dispatch'
 
 module WhenAUser
-  class Pageviews
+  class Users
     include WhenAUser::Helpers
 
     def initialize(app, options={})
