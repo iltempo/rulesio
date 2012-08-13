@@ -15,10 +15,12 @@ module WhenAUser
       end
     end
 
+    def fileline(exception)
+      clean_backtrace(exception).first.match(/^(.*:.*):/)[1] rescue @app.to_s
+    end
+
     def actor_for_exception(exception)
-      backtrace = clean_backtrace(exception)
-      fileline = backtrace.first.match(/^(.*:.*):/)[1] rescue @app.to_s
-      "#{exception.class.to_s}:#{fileline}"
+      "#{exception.class.to_s}:#{fileline(exception)}"
     end
   end
 end
