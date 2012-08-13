@@ -60,9 +60,10 @@ module WhenAUser
       backtrace = clean_backtrace(exception)
       event = {
         :_actor => actor_for_exception(exception),
-        :_domain => fileline(exception),
-        :_name => exception.class.to_s,
+        :_domain => exception.class.to_s,
+        :_name => fileline(exception),
         :exception => exception.class.to_s,
+        :file => fileline(exception),
         :message => exception.to_s,
         :backtrace => backtrace.join("\n")
       }
