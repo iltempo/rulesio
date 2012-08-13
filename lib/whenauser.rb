@@ -76,13 +76,16 @@ module WhenAUser
       env['rack.input'].rewind
       request = defined?(Rails) ? ActionDispatch::Request.new(env) : ::Rack::Request.new(env)
       params = request.params
-
-      event[:_name] ||= page_event_name(request, params)
+      action = page_event_name(request, params)
+      
+      event[:_name] ||= action
+      event[:action] = action
       event[:request_url] = request.url
       event[:request_method] = request.request_method
       event[:user_agent] = request.user_agent
       event[:referer_url] = request.referer if request.referer.present?
       event[:params] = params
+      event[:session] = request.session
     end
 
     event
