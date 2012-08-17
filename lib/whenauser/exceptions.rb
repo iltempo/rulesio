@@ -62,13 +62,13 @@ module WhenAUser
         :_actor => actor_for_exception(exception),
         :_domain => exception.class.to_s,
         :_name => fileline(exception),
+        :_message => exception.to_s,
         :exception => exception.class.to_s,
         :file => fileline(exception),
-        :message => exception.to_s,
         :backtrace => backtrace.join("\n")
       }
       user = WhenAUser.current_user(env)
-      event.merge!(:current_user => user) if user
+      event[:_xactor] = user if user
       event.merge!(@options[:custom_data].call(env))
       event
     end

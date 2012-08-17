@@ -56,8 +56,8 @@ module WhenAUser
         :duration => "%.2f" % (duration * 1000)
       }
       if exception = env['whenauser.exception']
-        event.merge!(:error => actor_for_exception(exception))
-        event.merge!(:message => exception.to_s)
+        event[:_xactor] = actor_for_exception(exception)
+        event[:_message] = exception.to_s
       end
       event.merge!(@options[:custom_data].call(env))
       event
