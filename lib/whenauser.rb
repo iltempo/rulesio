@@ -84,7 +84,7 @@ module WhenAUser
       event[:request_method] = request.request_method
       event[:user_agent] = request.user_agent
       event[:referer_url] = request.referer if request.referer.present?
-      event[:params] = params
+      event[:params] = params.except(*WhenAUser.filter_parameters)
       event[:session] = request.session
     end
 
