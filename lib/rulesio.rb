@@ -77,7 +77,7 @@ module RulesIO
 
     if controller = env['action_controller.instance']
       begin
-        data = controller.instance_eval(RulesIO.controller_data)
+        data = controller.instance_eval(RulesIO.controller_data).with_indifferent_access
         event = data.merge(event)
       rescue
       end

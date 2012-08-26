@@ -37,7 +37,8 @@ module RulesIO
 
   private
     def send_event_now(event, token, env)
-      RulesIO.post_payload_to_token RulesIO.prepare_event(event, env), token
+      prep = RulesIO.prepare_event(event, env)
+      RulesIO.post_payload_to_token prep, token
     end
 
     def should_be_ignored(env, exception)
@@ -67,7 +68,7 @@ module RulesIO
         :exception => exception.class.to_s,
         :file => fileline(exception),
         :backtrace => backtrace.join("\n")
-      }
+      }.with_indifferent_access
       useractor = RulesIO.current_actor(env)
       event[:_xactor] = useractor if useractor
       event.merge!(@options[:custom_data].call(env))

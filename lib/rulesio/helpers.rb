@@ -16,7 +16,8 @@ module RulesIO
     end
 
     def fileline(exception)
-      clean_backtrace(exception).first.match(/^(.*:.*):/)[1] rescue @app.to_s
+      fl = clean_backtrace(exception).first.match(/^(.*:.*):/)[1] rescue @app.to_s
+      fl.gsub(/ \((.*)\) /, '-\1-')
     end
 
     def actor_for_exception(exception)
