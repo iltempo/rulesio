@@ -40,14 +40,16 @@ module WhenAUser
 
   def self.current_user(env)
     if controller = env['action_controller.instance']
-      if current_user = controller.instance_variable_get('@current_user') || controller.instance_eval('current_user')
-        [:login, :username, :email, :id].each do |field|
-          return current_user.send(field) if current_user.respond_to?(field)
-        end
-      end
+      controller.instance_variable_get('@current_user') || controller.instance_eval('current_user')
     end
-    nil
   rescue
+    nil
+  end
+  
+  def self.actor_for_user(user)
+    [:to_param, :id].each do |method|
+      return user.send(method) if user && user.respond_to?(method)
+    end
     nil
   end
 
@@ -68,7 +70,10 @@ module WhenAUser
       event.merge!(data)
     end
 
-    event[:_actor] = current_user(env) || 'anonymous' unless event[:_actor].present?
+    current_user = current_user(env)
+    actor = actor_for_user(current_user)
+
+    event[:_actor] = actor || 'anonymous' unless event[:_actor].present?
     event[:_timestamp] ||= Time.now.to_f
     event[:rails_env] = Rails.env if defined?(Rails)
 
@@ -79,15 +84,17 @@ module WhenAUser
       action = page_event_name(request, params)
       
       event[:_name] ||= action
+      event[:_from] ||= current_user.email if current_user && current_user.respond_to?(:email) && current_user.email != event[:_actor]
       event[:action] = action
-      event[:request_url] = request.url
+      event[:request_url] = env['rulesio.request_url']
       event[:request_method] = request.request_method
       event[:user_agent] = request.user_agent
-      event[:referer_url] = request.referer if request.referer.present?
+      event[:referer_url] = request.referer
       event[:params] = params.except(*WhenAUser.filter_parameters)
       event[:session] = request.session
     end
 
+    event.reject! {|k, v| v.to_s.blank?}
     event
   end
 
@@ -106,6 +113,7 @@ module WhenAUser
 
     def call(env)
       WhenAUser.buffer = []
+      env['rulesio.request_url'] = ::Rack::Request.new(env).url
       @app.call(env)
     ensure
       WhenAUser.flush(env)

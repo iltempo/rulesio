@@ -60,6 +60,7 @@ module WhenAUser
       backtrace = clean_backtrace(exception)
       event = {
         :_actor => actor_for_exception(exception),
+        :_from => '',
         :_domain => exception.class.to_s,
         :_name => fileline(exception),
         :_message => exception.to_s,
@@ -67,8 +68,8 @@ module WhenAUser
         :file => fileline(exception),
         :backtrace => backtrace.join("\n")
       }
-      user = WhenAUser.current_user(env)
-      event[:_xactor] = user if user
+      useractor = WhenAUser.actor_for_user(WhenAUser.current_user(env))
+      event[:_xactor] = useractor if useractor
       event.merge!(@options[:custom_data].call(env))
       event
     end
