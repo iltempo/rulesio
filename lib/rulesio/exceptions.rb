@@ -68,7 +68,7 @@ module RulesIO
         :file => fileline(exception),
         :backtrace => backtrace.join("\n")
       }
-      useractor = RulesIO.actor_for_user(RulesIO.current_user(env))
+      useractor = RulesIO.current_actor(env)
       event[:_xactor] = useractor if useractor
       event.merge!(@options[:custom_data].call(env))
       event

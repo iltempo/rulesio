@@ -46,9 +46,19 @@ module RulesIO
     nil
   end
   
-  def self.actor_for_user(user)
-    [:to_param, :id].each do |method|
-      return user.send(method) if user && user.respond_to?(method)
+  def self.current_actor(env)
+    if controller = env['action_controller.instance']
+      begin
+        data = controller.instance_eval(RulesIO.controller_data)
+        data = data.with_indifferent_access
+        return data[:_actor] if data[:_actor]
+      rescue
+      end
+
+      user = controller.instance_variable_get('@current_user') || controller.instance_eval('current_user')
+      [:to_param, :id].each do |method|
+        return user.send(method) if user && user.respond_to?(method)
+      end
     end
     nil
   end
@@ -68,13 +78,13 @@ module RulesIO
     if controller = env['action_controller.instance']
       begin
         data = controller.instance_eval(RulesIO.controller_data)
-        event.merge!(data)
+        event = data.merge(event)
       rescue
       end
     end
 
     current_user = current_user(env)
-    actor = actor_for_user(current_user)
+    actor = current_actor(env)
 
     event[:_actor] = actor || 'anonymous' unless event[:_actor].present?
     event[:_timestamp] ||= Time.now.to_f
