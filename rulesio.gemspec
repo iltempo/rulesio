@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path('../lib', __FILE__)
-require 'whenauser/version'
+require 'rulesio/version'
 
 Gem::Specification.new do |s|
-  s.name        = 'whenauser'
-  s.version     = WhenAUser::VERSION
+  s.name        = 'rulesio'
+  s.version     = RulesIO::VERSION
   s.authors     = ['David Anderson', 'Chris Weis']
   s.email       = ['david@alpinegizmo.com']
-  s.homepage    = 'https://github.com/tractionlabs/whenauser'
-  s.summary     = %q{Rack middleware for connecting to WhenAUser}
-  s.description = %q{Rack middleware for connecting to WhenAUser}
+  s.homepage    = 'https://github.com/tractionlabs/rulesio'
+  s.summary     = %q{Rack middleware for connecting to rules.io}
+  s.description = %q{Rack middleware for connecting Rack applications to rules.io, with extensions for Rails 3 applications.}
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

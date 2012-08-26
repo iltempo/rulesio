@@ -4,13 +4,13 @@
 
 require 'action_dispatch'
 
-module WhenAUser
+module RulesIO
   class Users
-    include WhenAUser::Helpers
+    include RulesIO::Helpers
 
     def initialize(app, options={})
       @app, @options = app, options
-      @options[:ignore_crawlers]      ||= WhenAUser.default_ignored_crawlers
+      @options[:ignore_crawlers]      ||= RulesIO.default_ignored_crawlers
       @options[:ignore_if]            ||= lambda { |env| false }
       @options[:ignore_if_controller] ||= 'false'
       @options[:custom_data]          ||= lambda { |env| {} }
@@ -25,7 +25,7 @@ module WhenAUser
       raise e
     ensure
       after = Time.now
-      WhenAUser.send_event event(env, status, after - before) unless should_be_ignored(env)
+      RulesIO.send_event event(env, status, after - before) unless should_be_ignored(env)
     end
 
   private
@@ -55,7 +55,7 @@ module WhenAUser
         :status => status,
         :duration => "%.2f" % (duration * 1000)
       }
-      if exception = env['whenauser.exception']
+      if exception = env['rulesio.exception']
         event[:_xactor] = actor_for_exception(exception)
         event[:_message] = exception.to_s
       end

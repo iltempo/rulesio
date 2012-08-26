@@ -1,5 +1,5 @@
 module ActiveRecord
-  module WhenAUserExtension
+  module RulesIOExtension
     def save(*)
       result = super
       send_invalid_model_event if result == false
@@ -23,7 +23,7 @@ module ActiveRecord
         :attributes => self.attributes,
         :errors => self.errors.full_messages.to_sentence
       }
-      WhenAUser.send_event event
+      RulesIO.send_event event
     end
   end
 end

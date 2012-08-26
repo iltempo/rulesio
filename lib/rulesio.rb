@@ -1,16 +1,16 @@
-require 'whenauser/version'
-require 'whenauser/helpers'
-require 'whenauser/exceptions'
-require 'whenauser/users'
-require 'whenauser/girl_friday_queue'
-require 'whenauser/memory_queue'
+require 'rulesio/version'
+require 'rulesio/helpers'
+require 'rulesio/exceptions'
+require 'rulesio/users'
+require 'rulesio/girl_friday_queue'
+require 'rulesio/memory_queue'
 require 'net/http'
 require 'uri'
 require 'logger'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/hash/indifferent_access'
 
-module WhenAUser
+module RulesIO
   mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options, :controller_data, :logger
 
   def self.default_ignored_crawlers
@@ -22,14 +22,14 @@ module WhenAUser
   end
 
   def self.flush(env={})
-    return if (events = WhenAUser.buffer).empty?
-    WhenAUser.buffer = []
-    WhenAUser.queue.push(:payload => events.map {|event| WhenAUser.prepare_event(event, env)})
-    # WhenAUser.post_payload_to_token events.to_json, WhenAUser.token
+    return if (events = RulesIO.buffer).empty?
+    RulesIO.buffer = []
+    RulesIO.queue.push(:payload => events.map {|event| RulesIO.prepare_event(event, env)})
+    # RulesIO.post_payload_to_token events.to_json, RulesIO.token
   end
   
   def self.post_payload_to_token(payload, token)
-    uri = URI(WhenAUser.webhook_url + token)
+    uri = URI(RulesIO.webhook_url + token)
     req = Net::HTTP::Post.new(uri.path)
     req.body = payload.to_json
     req.content_type = 'application/json'
@@ -66,8 +66,11 @@ module WhenAUser
     event = event.with_indifferent_access
 
     if controller = env['action_controller.instance']
-      data = controller.instance_eval(WhenAUser.controller_data)
-      event.merge!(data)
+      begin
+        data = controller.instance_eval(RulesIO.controller_data)
+        event.merge!(data)
+      rescue
+      end
     end
 
     current_user = current_user(env)
@@ -90,7 +93,7 @@ module WhenAUser
       event[:request_method] = request.request_method
       event[:user_agent] = request.user_agent
       event[:referer_url] = request.referer
-      event[:params] = params.except(*WhenAUser.filter_parameters)
+      event[:params] = params.except(*RulesIO.filter_parameters)
       event[:session] = request.session
     end
 
@@ -101,24 +104,24 @@ module WhenAUser
   class Rack
     def initialize(app, options={})
       @app = app
-      WhenAUser.logger = defined?(Rails) ? Rails.logger : Logger.new(STDOUT)
-      WhenAUser.webhook_url = options[:webhook_url] || 'http://www.whenauser.com/events/'
-      WhenAUser.buffer = []
-      WhenAUser.filter_parameters = defined?(Rails) ? Rails.application.config.filter_parameters : []
-      WhenAUser.token = options[:token]
-      WhenAUser.queue = options[:queue] || WhenAUser::MemoryQueue
-      WhenAUser.queue_options = options[:queue_options] || {}
-      WhenAUser.controller_data = options[:controller_data] || '{}'
+      RulesIO.logger = defined?(Rails) ? Rails.logger : Logger.new(STDOUT)
+      RulesIO.webhook_url = options[:webhook_url] || 'http://www.rules.io/events/'
+      RulesIO.buffer = []
+      RulesIO.filter_parameters = defined?(Rails) ? Rails.application.config.filter_parameters : []
+      RulesIO.token = options[:token]
+      RulesIO.queue = options[:queue] || RulesIO::MemoryQueue
+      RulesIO.queue_options = options[:queue_options] || {}
+      RulesIO.controller_data = options[:controller_data] || '{}'
     end
 
     def call(env)
-      WhenAUser.buffer = []
+      RulesIO.buffer = []
       env['rulesio.request_url'] = ::Rack::Request.new(env).url
       @app.call(env)
     ensure
-      WhenAUser.flush(env)
+      RulesIO.flush(env)
     end
   end
 end
 
-require 'whenauser/railtie' if defined?(Rails)
+require 'rulesio/railtie' if defined?(Rails)

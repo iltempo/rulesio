@@ -1,4 +1,4 @@
-module WhenAUser
+module RulesIO
   module Helpers
     def from_crawler(ignore_array, agent)
       ignore_array.each do |crawler|

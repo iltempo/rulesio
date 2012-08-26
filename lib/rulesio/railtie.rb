@@ -1,11 +1,11 @@
 require 'rails/railtie'
 require 'active_record'
 
-module Whenauser
+module RulesIO
   class RailsConfigurator
     attr_accessor :token, :webhook_url, :middlewares, :queue, :controller_data, :queue_options
     def initialize
-      @webhook_url = 'http://www.whenauser.com/events/'
+      @webhook_url = 'http://www.rules.io/events/'
       @middlewares = {}
     end
 
@@ -67,21 +67,21 @@ module Whenauser
   end
 
   class Railtie < Rails::Railtie
-    initializer :whenauser do |app|
-      filename = Rails.root.join('config/whenauser.rb')
+    initializer :rulesio do |app|
+      filename = Rails.root.join('config/rulesio.rb')
       if File.exists?(filename)
-        Whenauser::RailsConfigurator.new.instance_eval do
+        RulesIO::RailsConfigurator.new.instance_eval do
           eval IO.read(filename), binding, filename.to_s, 1
           if defined?(::Rails.configuration) && ::Rails.configuration.respond_to?(:middleware)
-            ::Rails.configuration.middleware.insert_after 'ActionDispatch::Static', 'WhenAUser::Rack',
+            ::Rails.configuration.middleware.insert_after 'ActionDispatch::Static', 'RulesIO::Rack',
                 :webhook_url => @webhook_url,
                 :token => @token,
                 :queue => @queue,
                 :queue_options => @queue_options,
                 :controller_data => @controller_data
-            ::Rails.configuration.middleware.use('WhenAUser::Users', @middlewares[:users].configuration) if @middlewares.has_key?(:users)
-            ::Rails.configuration.middleware.use('WhenAUser::Users', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
-            ::Rails.configuration.middleware.use('WhenAUser::Exceptions', @middlewares[:exceptions].configuration) if @middlewares.has_key?(:exceptions)
+            ::Rails.configuration.middleware.use('RulesIO::Users', @middlewares[:users].configuration) if @middlewares.has_key?(:users)
+            ::Rails.configuration.middleware.use('RulesIO::Users', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
+            ::Rails.configuration.middleware.use('RulesIO::Exceptions', @middlewares[:exceptions].configuration) if @middlewares.has_key?(:exceptions)
           end
         end
       end
@@ -89,8 +89,8 @@ module Whenauser
 
     config.after_initialize do
       ActiveSupport.on_load(:active_record) do
-        require 'whenauser/active_record_extension'
-        include ActiveRecord::WhenAUserExtension
+        require 'rulesio/active_record_extension'
+        include ActiveRecord::RulesIOExtension
       end
     end
   end
