@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = RulesIO::VERSION
   s.authors     = ['David Anderson', 'Chris Weis']
   s.email       = ['david@alpinegizmo.com']
-  s.homepage    = 'https://github.com/tractionlabs/rulesio'
+  s.homepage    = 'https://github.com/rulesio/rulesio'
   s.summary     = %q{Rack middleware for connecting to rules.io}
   s.description = %q{Rack middleware for connecting Rack applications to rules.io, with extensions for Rails 3 applications.}
 
