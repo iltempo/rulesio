@@ -1,7 +1,7 @@
 rulesio gem for rules.io
 =========
 
-[rules.io](http://rules.io) is a rules engine that reacts to things users do or experience in your software, and makes things happen in 3rd party SaaS APIs -- without your having to write any code. Rather than implementing the most rapidly evolving parts of your application's business logic in code, your team can use the rules.io web app to specify "when", "how", and "who", with rules like these:
+[rules.io](https://rules.io) is a rules engine that reacts to things users do or experience in your software, and makes things happen in 3rd party SaaS APIs -- without your having to write any code. Rather than implementing the most rapidly evolving parts of your application's business logic in code, your team can use the rules.io web app to specify "when", "how", and "who", with rules like these:
 
 * when a user gets a form validation error three times in an hour, send an email to Frank
 * when a premium customer hasn't logged in for a month, flag them in your CRM
@@ -45,7 +45,7 @@ The string will be evaluated in the context of your controller.
 Sending other events
 --------------------
 
-Every event must contain the \_actor, \_timestamp, \_domain and \_name fields. Beyond those fields, you can include any additional data you choose. See [docs](http://rules.io/docs) for more details.
+Every event must contain the \_actor, \_timestamp, \_domain and \_name fields. Beyond those fields, you can include any additional data you choose. See [docs](https://rules.io/docs) for more details.
 
 To manually send an event when a user upgrades to a "premium" account:
 
@@ -87,7 +87,7 @@ Options
 RulesIO::Rack accepts these options:
 
 * `token` -- the token for a rules.io channel
-* `webhook_url` -- defaults to 'http://www.rules.io/events'
+* `webhook_url` -- defaults to 'https://www.rules.io/events'
 * `middleware` -- takes the symbol for a middleware and a block, configuring it
 * `queue` -- takes the class used for queuing (default: RulesIO::MemoryQueue), and an optional hash; see the section on girl_friday for examples
 * `controller_data` -- a string evaluated in the context of the Rails controller (if any) handling the request; it should return a hash to be merged into every event (both automatically generated and manually triggered events)

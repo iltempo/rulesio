@@ -1,7 +1,3 @@
-# With inspiration from
-#   https://github.com/smartinez87/exception_notification
-#   http://sharagoz.com/posts/1-rolling-your-own-exception-handler-in-rails-3
-
 require 'action_dispatch'
 
 module RulesIO

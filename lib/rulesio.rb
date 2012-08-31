@@ -33,7 +33,9 @@ module RulesIO
     req = Net::HTTP::Post.new(uri.path)
     req.body = payload.to_json
     req.content_type = 'application/json'
-    Net::HTTP.start(uri.host, uri.port) do |http|
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true if RulesIO.webhook_url =~ /^https:/
+    http.start do |http|
       http.request(req)
     end
   end
@@ -115,7 +117,7 @@ module RulesIO
     def initialize(app, options={})
       @app = app
       RulesIO.logger = defined?(Rails) ? Rails.logger : Logger.new(STDOUT)
-      RulesIO.webhook_url = options[:webhook_url] || 'http://www.rules.io/events/'
+      RulesIO.webhook_url = options[:webhook_url] || 'https://www.rules.io/events/'
       RulesIO.buffer = []
       RulesIO.filter_parameters = defined?(Rails) ? Rails.application.config.filter_parameters : []
       RulesIO.token = options[:token]

@@ -5,7 +5,7 @@ module RulesIO
   class RailsConfigurator
     attr_accessor :token, :webhook_url, :middlewares, :queue, :controller_data, :queue_options
     def initialize
-      @webhook_url = 'http://www.rules.io/events/'
+      @webhook_url = 'https://www.rules.io/events/'
       @middlewares = {}
     end
 

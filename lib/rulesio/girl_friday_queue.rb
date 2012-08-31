@@ -14,6 +14,7 @@ module RulesIO
         rescue Exception => e
           if (retries += 1) % 6 == 5
             RulesIO.logger.warn "RulesIO having trouble sending events; #{retries} attempts so far."
+            RulesIO.logger.warn "#{e.inspect}: #{e.message}"
           end
           sleep [5, retries].max
           retry
