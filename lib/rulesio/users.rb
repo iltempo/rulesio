@@ -46,8 +46,13 @@ module RulesIO
     end
 
     def event(env, status, duration)
+      domain = if (status.to_i >= 400)
+        'pageerror'
+      else
+        (env['rulesio.request_method'] == 'GET') ? 'pageview' : 'formpost'
+      end
       event = {
-        :_domain => (status.to_i >= 400) ? 'pageerror' : 'pageview',
+        :_domain => domain,
         :status => status,
         :duration => "%.2f" % (duration * 1000)
       }

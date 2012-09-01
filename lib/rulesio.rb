@@ -11,7 +11,7 @@ require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/hash/indifferent_access'
 
 module RulesIO
-  mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options, :controller_data, :logger
+  mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options, :controller_data, :logger, :disable_sending_events
 
   def self.default_ignored_crawlers
     %w(Baidu Gigabot Googlebot libwww-perl lwp-trivial msnbot SiteUptime Slurp WordPress ZIBB ZyBorg Yandex Jyxobot Huaweisymantecspider ApptusBot NewRelicPinger)
@@ -29,6 +29,7 @@ module RulesIO
   end
   
   def self.post_payload_to_token(payload, token)
+    return if RulesIO.disable_sending_events
     uri = URI(RulesIO.webhook_url + token)
     req = Net::HTTP::Post.new(uri.path)
     req.body = payload.to_json
@@ -98,11 +99,13 @@ module RulesIO
       params = request.params
       action = page_event_name(request, params)
       
+      event[:_domain] = 'JSON' if event[:_domain] == 'pageview' && params['format'] == 'json'
+      event[:_domain] = 'XML' if event[:_domain] == 'pageview' && params['format'] == 'xml'
       event[:_name] ||= action
       event[:_from] ||= current_user.email if current_user && current_user.respond_to?(:email) && current_user.email != event[:_actor]
       event[:action] = action
       event[:request_url] = env['rulesio.request_url']
-      event[:request_method] = request.request_method
+      event[:request_method] = env['rulesio.request_method']
       event[:user_agent] = request.user_agent
       event[:referer_url] = request.referer
       event[:params] = params.except(*RulesIO.filter_parameters)
@@ -124,11 +127,14 @@ module RulesIO
       RulesIO.queue = options[:queue] || RulesIO::MemoryQueue
       RulesIO.queue_options = options[:queue_options] || {}
       RulesIO.controller_data = options[:controller_data] || '{}'
+      RulesIO.disable_sending_events = options[:disable_sending_events] || false
     end
 
     def call(env)
       RulesIO.buffer = []
-      env['rulesio.request_url'] = ::Rack::Request.new(env).url
+      request = ::Rack::Request.new(env)
+      env['rulesio.request_url'] = request.url
+      env['rulesio.request_method'] = request.request_method
       @app.call(env)
     ensure
       RulesIO.flush(env)

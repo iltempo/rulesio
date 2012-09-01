@@ -26,6 +26,7 @@ You should create two incoming channels (event streams) in rules.io, and configu
     middleware :exceptions do      # automatically generate events for exceptions
       token 'ERROR_CHANNEL_TOKEN'  # separate channel for error-centric events
     end
+    disable_sending_events if Rails.env.test? || Rails.env.development?
     
 ###As general-purpose Rack middleware, with or without Rails
 
@@ -87,6 +88,7 @@ Options
 RulesIO::Rack accepts these options:
 
 * `token` -- the token for a rules.io channel
+* `disable_sending_events` -- you probably want to include this directive for your test and development environments
 * `webhook_url` -- defaults to 'https://www.rules.io/events'
 * `middleware` -- takes the symbol for a middleware and a block, configuring it
 * `queue` -- takes the class used for queuing (default: RulesIO::MemoryQueue), and an optional hash; see the section on girl_friday for examples

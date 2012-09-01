@@ -3,10 +3,11 @@ require 'active_record'
 
 module RulesIO
   class RailsConfigurator
-    attr_accessor :token, :webhook_url, :middlewares, :queue, :controller_data, :queue_options
+    attr_accessor :token, :webhook_url, :middlewares, :queue, :controller_data, :queue_options, :disable
     def initialize
       @webhook_url = 'https://www.rules.io/events/'
       @middlewares = {}
+      @disable = false
     end
 
     def token(token)
@@ -24,6 +25,10 @@ module RulesIO
     def queue(queue, options)
       @queue = queue
       @queue_options = options
+    end
+    
+    def disable_sending_events
+      @disable = true
     end
 
     def controller_data(data)
@@ -75,6 +80,7 @@ module RulesIO
           if defined?(::Rails.configuration) && ::Rails.configuration.respond_to?(:middleware)
             ::Rails.configuration.middleware.insert_after 'ActionDispatch::Static', 'RulesIO::Rack',
                 :webhook_url => @webhook_url,
+                :disable_sending_events => @disable,
                 :token => @token,
                 :queue => @queue,
                 :queue_options => @queue_options,
@@ -84,6 +90,8 @@ module RulesIO
             ::Rails.configuration.middleware.use('RulesIO::Exceptions', @middlewares[:exceptions].configuration) if @middlewares.has_key?(:exceptions)
           end
         end
+      else
+        puts 'Warning: rulesio configuration file not found in config/rulesio.rb'
       end
     end
 
