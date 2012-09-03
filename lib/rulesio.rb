@@ -108,7 +108,7 @@ module RulesIO
       event[:request_method] = env['rulesio.request_method']
       event[:user_agent] = request.user_agent
       event[:referer_url] = request.referer
-      event[:params] = params.except(*RulesIO.filter_parameters)
+      event[:params] = params.except(*RulesIO.filter_parameters).reject{|k,v|k =~ /password/}
       event[:session] = request.session
     end
 
