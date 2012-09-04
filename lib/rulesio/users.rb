@@ -60,6 +60,9 @@ module RulesIO
         event[:_xactor] = actor_for_exception(exception)
         event[:_message] = exception.to_s
       end
+      if domain == 'pageerror' && status.to_i < 500
+        event[:_message] = "#{status}: #{::Rack::Utils::HTTP_STATUS_CODES[status.to_i]}"
+      end
       event.merge!(@options[:custom_data].call(env))
       event
     end
