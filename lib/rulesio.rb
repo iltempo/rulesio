@@ -58,9 +58,12 @@ module RulesIO
       rescue
       end
 
-      user = controller.instance_variable_get('@current_user') || controller.instance_eval('current_user')
-      [:to_param, :id].each do |method|
-        return user.send(method) if user && user.respond_to?(method)
+      begin
+        user = controller.instance_variable_get('@current_user') || controller.instance_eval('current_user')
+        [:to_param, :id].each do |method|
+          return user.send(method) if user && user.respond_to?(method)
+        end
+      rescue
       end
     end
     nil
