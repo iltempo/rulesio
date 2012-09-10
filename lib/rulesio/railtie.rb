@@ -78,7 +78,7 @@ module RulesIO
         RulesIO::RailsConfigurator.new.instance_eval do
           eval IO.read(filename), binding, filename.to_s, 1
           if defined?(::Rails.configuration) && ::Rails.configuration.respond_to?(:middleware)
-            ::Rails.configuration.middleware.insert_after 'ActionDispatch::Static', 'RulesIO::Rack',
+            ::Rails.configuration.middleware.insert 0, 'RulesIO::Rack',
                 :webhook_url => @webhook_url,
                 :disable_sending_events => @disable,
                 :token => @token,
