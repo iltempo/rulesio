@@ -58,6 +58,15 @@ To manually send an event when a user upgrades to a "premium" account:
       :user_email => current_user.email,
       :plan => 'premium' )
 
+Filtering sensitive data
+------------------------
+
+This gem will not send any parameters mentioned in Rails.application.config.filter_parameters, nor will it send any parameters that match /password/. We recommend extending this line in application.rb
+
+    config.filter_parameters += [:password]
+
+to exclude sensitive parameters from both your log files and what you send to rules.io.
+
 Using girl_friday for asynchronous communication and persistence
 -----------------
 
