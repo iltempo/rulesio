@@ -9,6 +9,7 @@ require 'uri'
 require 'logger'
 require 'active_support/core_ext/module/attribute_accessors'
 require 'active_support/core_ext/hash/indifferent_access'
+require 'action_dispatch/http/parameter_filter'
 
 module RulesIO
   mattr_accessor :filter_parameters, :buffer, :token, :webhook_url, :queue, :queue_options, :controller_data, :logger, :disable_sending_events
@@ -111,8 +112,9 @@ module RulesIO
       event[:request_method] = env['rulesio.request_method']
       event[:user_agent] = request.user_agent
       event[:referer_url] = request.referer
-      event[:params] = params.except(*RulesIO.filter_parameters).reject{|k,v|k =~ /password/}
       event[:session] = request.session
+      parameter_filter = ::ActionDispatch::Http::ParameterFilter.new(RulesIO.filter_parameters)
+      event[:params] = parameter_filter.filter(params)
     end
 
     event.reject! {|k, v| v.to_s.blank?}
