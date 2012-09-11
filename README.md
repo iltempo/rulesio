@@ -61,7 +61,7 @@ To manually send an event when a user upgrades to a "premium" account:
 Filtering sensitive data
 ------------------------
 
-This gem will not send any parameters mentioned in Rails.application.config.filter_parameters, nor will it send any parameters that match /password/. We recommend extending this line in application.rb
+This gem will not send any parameters mentioned in Rails.application.config.filter_parameters. We recommend extending this line in application.rb
 
     config.filter_parameters += [:password]
 
