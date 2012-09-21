@@ -61,7 +61,9 @@ To manually send an event when a user upgrades to a "premium" account:
 Filtering sensitive data
 ------------------------
 
-This gem will not send any parameters mentioned in Rails.application.config.filter_parameters. We recommend extending this line in application.rb
+By default, the exceptions middleware will send information to an error channel about exceptions from your application, including params, session, referer and requested url, backtrace, rails\_env and a UID of the user that was affected by the exception. The users middleware will send information to a user channel about all page views, form submissions, page errors and model validation errors from your application. This includes the user's email address (when available as current\_user.email), params and session data, referring and requested urls, status codes, rails_env and connections to any corresponding exception events. 
+
+This gem will not send any parameters mentioned in Rails.application.config.filter\_parameters. We recommend extending this line in application.rb
 
     config.filter_parameters += [:password]
 

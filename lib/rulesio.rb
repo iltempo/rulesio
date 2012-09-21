@@ -86,7 +86,8 @@ module RulesIO
       begin
         data = controller.instance_eval(RulesIO.controller_data).with_indifferent_access
         event = data.merge(event)
-      rescue
+      rescue Exception => e
+        RulesIO.logger.warn "RulesIO having trouble with controller_data: #{e}"
       end
     end
 
