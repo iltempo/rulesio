@@ -165,3 +165,8 @@ Compatibility
 -------------
 
 This gem can be used without Rails, but when used with Rails it depends on Rails 3 (we've tested with Rails 3.1 and 3.2). If you want to use girl_friday, you must use Ruby 1.9.2 or greater, JRuby, or Rubinius.
+
+More info
+---------
+
+See the [wiki](https://github.com/rulesio/rulesio/wiki).
