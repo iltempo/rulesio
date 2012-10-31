@@ -53,10 +53,18 @@ module RulesIO
   def self.current_actor(env)
     if controller = env['action_controller.instance']
       begin
-        data = controller.instance_eval(RulesIO.controller_data)
+        data = if RulesIO.controller_data.is_a?(String)
+          controller.instance_eval(RulesIO.controller_data)
+        elsif RulesIO.controller_data.is_a?(Proc) && !RulesIO.controller_data.lambda?
+          controller.instance_eval(&RulesIO.controller_data)
+        else
+          {}
+        end
         data = data.with_indifferent_access
         return data[:_actor] if data[:_actor]
-      rescue
+      rescue Exception => e
+        puts e.message
+        puts e.backtrace.join("\n")
       end
 
       begin
@@ -64,7 +72,9 @@ module RulesIO
         [:to_param, :id].each do |method|
           return user.send(method) if user && user.respond_to?(method)
         end
-      rescue
+      rescue Exception => e
+        puts e.message
+        puts e.backtrace.join("\n")
       end
     end
     nil
@@ -84,8 +94,14 @@ module RulesIO
 
     if controller = env['action_controller.instance']
       begin
-        data = controller.instance_eval(RulesIO.controller_data).with_indifferent_access
-        event = data.merge(event)
+        data = if RulesIO.controller_data.is_a?(String)
+          controller.instance_eval(RulesIO.controller_data)
+        elsif RulesIO.controller_data.is_a?(Proc) && !RulesIO.controller_data.lambda?
+          controller.instance_eval(&RulesIO.controller_data)
+        else
+          {}
+        end
+        event = data.with_indifferent_access.merge(event)
       rescue Exception => e
         RulesIO.logger.warn "RulesIO having trouble with controller_data: #{e}"
       end

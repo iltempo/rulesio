@@ -7,9 +7,9 @@ module RulesIO
     def initialize(app, options={})
       @app, @options = app, options
       @options[:ignore_crawlers]      ||= RulesIO.default_ignored_crawlers
-      @options[:ignore_if]            ||= lambda { |env| false }
+      @options[:ignore_if]            ||= Proc.new { |env| false }
       @options[:ignore_if_controller] ||= 'false'
-      @options[:custom_data]          ||= lambda { |env| {} }
+      @options[:custom_data]          ||= Proc.new { |env| {} }
     end
 
     def call(env)
@@ -38,7 +38,13 @@ module RulesIO
 
     def conditionally_ignored_controller(condition, env)
       controller = env['action_controller.instance']
-      controller.instance_eval condition
+      if condition.is_a?(String)
+        controller.instance_eval(condition)
+      elsif condition.is_a?(Proc) && !condition.lambda?
+        controller.instance_eval(&condition)
+      else
+        false
+      end
     end
 
     def conditionally_ignored(ignore_proc, env)

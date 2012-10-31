@@ -125,7 +125,7 @@ The RulesIO::Users middleware uses the same token as RulesIO::Rack.
 Here's an example of how to skip sending any user events for all requests to the SillyController:
 
     middleware :users do
-      ignore_if lambda { |env| env['action_controller.instance'].is_a? SillyController }
+      ignore_if Proc.new { |env| env['action_controller.instance'].is_a? SillyController }
     end
 
 To make life easier in the case where you want a condition evaluated in the context of a Rails controller, you can do the same thing like this. (Only the users middleware supports ignore_if_controller.)
