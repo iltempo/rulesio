@@ -92,6 +92,9 @@ module RulesIO
   def self.prepare_event(event, env)
     event = event.with_indifferent_access
 
+    current_user = current_user(env)
+    actor = current_actor(env)
+
     if controller = env['action_controller.instance']
       begin
         data = if RulesIO.controller_data.is_a?(String)
@@ -106,9 +109,6 @@ module RulesIO
         RulesIO.logger.warn "RulesIO having trouble with controller_data: #{e}"
       end
     end
-
-    current_user = current_user(env)
-    actor = current_actor(env)
 
     event[:_actor] = actor || 'anonymous' unless event[:_actor].present?
     event[:_timestamp] ||= Time.now.to_f
