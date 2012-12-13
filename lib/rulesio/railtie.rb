@@ -19,7 +19,7 @@ module RulesIO
     end
 
     def middleware(middleware, &block)
-      @middlewares[middleware] = MiddlewareConfigurator.apply(&block)
+      @middlewares[middleware] = MiddlewareConfigurator.apply(self, &block)
     end
     
     def queue(queue, options)
@@ -38,13 +38,25 @@ module RulesIO
     def girl_friday_options(options)
       @girl_friday_options = options
     end
+    
+    def configuration
+      {
+        :webhook_url => @webhook_url,
+        :disable_sending_events => @disable,
+        :token => @token,
+        :queue => @queue,
+        :queue_options => @queue_options,
+        :controller_data => @controller_data
+      }
+    end
   end
 
   class MiddlewareConfigurator
-    attr_accessor :configuration
+    attr_accessor :configuration, :root
 
-    def self.apply(&block)
+    def self.apply(root, &block)
       x = new
+      x.root = root
       x.configure(&block) if block_given?
       x
     end
@@ -77,17 +89,16 @@ module RulesIO
       if File.exists?(filename)
         RulesIO::RailsConfigurator.new.instance_eval do
           eval IO.read(filename), binding, filename.to_s, 1
+          RulesIO.logger = Rails.logger
+          RulesIO.webhook_url = @webhook_url || 'https://www.rules.io/events/'
+          RulesIO.queue = @queue || RulesIO::MemoryQueue
+          RulesIO.queue_options = @queue_options || {}
+          RulesIO.disable_sending_events = @disable_sending_events || false
           if defined?(::Rails.configuration) && ::Rails.configuration.respond_to?(:middleware)
-            ::Rails.configuration.middleware.insert 0, 'RulesIO::Rack',
-                :webhook_url => @webhook_url,
-                :disable_sending_events => @disable,
-                :token => @token,
-                :queue => @queue,
-                :queue_options => @queue_options,
-                :controller_data => @controller_data
-            ::Rails.configuration.middleware.use('RulesIO::Users', @middlewares[:users].configuration) if @middlewares.has_key?(:users)
-            ::Rails.configuration.middleware.use('RulesIO::Users', @middlewares[:pageviews].configuration) if @middlewares.has_key?(:pageviews)
-            ::Rails.configuration.middleware.use('RulesIO::Exceptions', @middlewares[:exceptions].configuration) if @middlewares.has_key?(:exceptions)
+            ::Rails.configuration.middleware.insert 0, 'RulesIO::Rack', configuration
+            ::Rails.configuration.middleware.use('RulesIO::Users', configuration.merge(@middlewares[:users].configuration)) if @middlewares.has_key?(:users)
+            ::Rails.configuration.middleware.use('RulesIO::Users', configuration.merge(@middlewares[:pageviews].configuration)) if @middlewares.has_key?(:pageviews)
+            ::Rails.configuration.middleware.use('RulesIO::Exceptions', configuration.merge(@middlewares[:exceptions].configuration)) if @middlewares.has_key?(:exceptions)
           end
         end
       else

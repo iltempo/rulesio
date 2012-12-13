@@ -10,7 +10,7 @@ module RulesIO
       super(:rulesio, {:size => 1}.merge(RulesIO.queue_options)) do |msg|
         retries = 0
         begin
-          RulesIO.post_payload_to_token msg[:payload], RulesIO.token
+          RulesIO.post_payload_to_token msg[:payload], msg[:token]
         rescue Exception => e
           if (retries += 1) % 6 == 5
             RulesIO.logger.warn "RulesIO having trouble sending events; #{retries} attempts so far."

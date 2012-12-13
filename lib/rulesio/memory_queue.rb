@@ -4,7 +4,7 @@ module RulesIO
   class MemoryQueue
 
     def self.push(hash)
-      RulesIO.post_payload_to_token hash[:payload], RulesIO.token
+      RulesIO.post_payload_to_token hash[:payload], hash[:token]
     end
 
   end

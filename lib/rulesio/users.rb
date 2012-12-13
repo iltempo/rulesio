@@ -1,12 +1,12 @@
 require 'action_dispatch'
 
 module RulesIO
-  class Users
-    include RulesIO::Helpers
-
+  class Users < RulesIO::Rack
+    include Helpers
     def initialize(app, options={})
-      @app, @options = app, options
-      @options[:ignore_crawlers]      ||= RulesIO.default_ignored_crawlers
+      @app, @options = app, RulesIO::Rack.config_options.merge(options)
+      super(@app, @options)
+      @options[:ignore_crawlers]      ||= default_ignored_crawlers
       @options[:ignore_if]            ||= Proc.new { |env| false }
       @options[:ignore_if_controller] ||= 'false'
       @options[:custom_data]          ||= Proc.new { |env| {} }
@@ -73,5 +73,34 @@ module RulesIO
       event
     end
 
+    def current_actor(env)
+      if controller = env['action_controller.instance']
+        begin
+          data = if @controller_data.is_a?(String)
+            controller.instance_eval(@controller_data)
+          elsif @controller_data.is_a?(Proc) && !@controller_data.lambda?
+            controller.instance_eval(&@controller_data)
+          else
+            {}
+          end
+          data = data.with_indifferent_access
+          return data[:_actor] if data[:_actor]
+        rescue Exception => e
+          puts e.message
+          puts e.backtrace.join("\n")
+        end
+
+        begin
+          user = controller.instance_variable_get('@current_user') || controller.instance_eval('current_user')
+          [:to_param, :id].each do |method|
+            return user.send(method) if user && user.respond_to?(method)
+          end
+        rescue Exception => e
+          puts e.message
+          puts e.backtrace.join("\n")
+        end
+      end
+      nil
+    end
   end
 end

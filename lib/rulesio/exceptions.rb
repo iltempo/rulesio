@@ -3,9 +3,10 @@
 #   http://sharagoz.com/posts/1-rolling-your-own-exception-handler-in-rails-3
 
 require 'action_dispatch'
+require 'rulesio/users'
 
 module RulesIO
-  class Exceptions
+  class Exceptions < RulesIO::Users
     include RulesIO::Helpers
 
     def self.default_ignored_exceptions
@@ -19,7 +20,7 @@ module RulesIO
     def initialize(app, options={})
       @app, @options = app, options
       @options[:ignore_exceptions] ||= self.class.default_ignored_exceptions
-      @options[:ignore_crawlers]   ||= RulesIO.default_ignored_crawlers
+      @options[:ignore_crawlers]   ||= default_ignored_crawlers
       @options[:ignore_if]         ||= lambda { |env, e| false }
       @options[:token]             ||= RulesIO.token
       @options[:custom_data]       ||= lambda { |env| {} }
@@ -30,17 +31,18 @@ module RulesIO
         @app.call(env)
       rescue Exception => exception
         env['rulesio.exception'] = exception
-        send_event_now event(env, exception), @options[:token], env unless should_be_ignored(env, exception)
+        send_event event(env, exception), env unless should_be_ignored(env, exception)
         raise exception
       end
     end
-
-  private
-    def send_event_now(event, token, env)
-      prep = RulesIO.prepare_event(event, env)
-      RulesIO.post_payload_to_token prep, token
+    
+    def send_event(event, env)
+      prep = prepare_event(event, env)
+      RulesIO.post_payload_to_token prep, @options[:token]
     end
 
+
+  private
     def should_be_ignored(env, exception)
       ignored_exception(@options[:ignore_exceptions], exception)       ||
       from_crawler(@options[:ignore_crawlers], env['HTTP_USER_AGENT']) ||
@@ -69,7 +71,7 @@ module RulesIO
         :file => fileline(exception),
         :backtrace => backtrace.join("\n")
       }.with_indifferent_access
-      useractor = RulesIO.current_actor(env)
+      useractor = current_actor(env)
       event[:_xactor] = useractor if useractor
       event.merge!(@options[:custom_data].call(env))
       event
