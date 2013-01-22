@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'activesupport'
   s.add_runtime_dependency 'actionpack'
-  s.add_runtime_dependency 'girl_friday', '~> 0.10.0'
+  s.add_runtime_dependency 'girl_friday', '~> 0.11'
 
   s.add_development_dependency "bundler", "~> 1"
   s.add_development_dependency "test-unit", "~> 2.2"
