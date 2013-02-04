@@ -1,3 +1,3 @@
 module RulesIO
-  VERSION = '0.10'
+  VERSION = '0.10.0'
 end
