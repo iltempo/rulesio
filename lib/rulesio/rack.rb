@@ -56,10 +56,10 @@ module RulesIO
 
       if controller = env['action_controller.instance']
         begin
-          data = if RulesIO.controller_data.is_a?(String)
-            controller.instance_eval(RulesIO.controller_data)
-          elsif RulesIO.controller_data.is_a?(Proc) && !RulesIO.controller_data.lambda?
-            controller.instance_eval(&RulesIO.controller_data)
+          data = if @controller_data.is_a?(String)
+            controller.instance_eval(@controller_data)
+          elsif @controller_data.is_a?(Proc) && !@controller_data.lambda?
+            controller.instance_eval(&@controller_data)
           else
             {}
           end

@@ -5,7 +5,6 @@ module RulesIO
 
     def initialize(token)
       RulesIO.instance = self
-      puts "INSTANCE SET"
       @token = token
       @buffer = []
     end
