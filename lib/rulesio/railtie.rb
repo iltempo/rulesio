@@ -93,7 +93,7 @@ module RulesIO
           RulesIO.webhook_url = @webhook_url || 'https://www.rules.io/events/'
           RulesIO.queue = @queue || RulesIO::MemoryQueue
           RulesIO.queue_options = @queue_options || {}
-          RulesIO.disable_sending_events = @disable_sending_events || false
+          RulesIO.disable_sending_events = @disable || false
           if defined?(::Rails.configuration) && ::Rails.configuration.respond_to?(:middleware)
             ::Rails.configuration.middleware.insert 0, 'RulesIO::Rack', configuration
             ::Rails.configuration.middleware.use('RulesIO::Users', configuration.merge(@middlewares[:users].configuration)) if @middlewares.has_key?(:users)
